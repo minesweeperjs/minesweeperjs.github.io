@@ -26,8 +26,9 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 30px;
-            max-width: 900px;
-            width: 100%;
+            max-width: 95%;
+            width: auto;
+            display: inline-block;
         }
 
         h1 {
@@ -50,6 +51,7 @@
         .difficulty-buttons {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         button {
@@ -85,6 +87,8 @@
             background: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .info-item {
@@ -104,45 +108,49 @@
             text-align: center;
         }
 
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         #gameBoard {
-            display: inline-block;
-            margin: 0 auto;
+            display: grid;
+            gap: 1px;
             border: 3px solid #764ba2;
             border-radius: 10px;
-            background: #e9ecef;
+            background: #adb5bd;
             padding: 10px;
             position: relative;
         }
 
-        .board-wrapper {
-            text-align: center;
-            position: relative;
-        }
-
         .cell {
-            width: 30px;
-            height: 30px;
-            border: 1px solid #adb5bd;
+            width: 32px;
+            height: 32px;
             background: #dee2e6;
-            float: left;
-            text-align: center;
-            line-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
             transition: all 0.2s;
             user-select: none;
+            border: 1px solid #adb5bd;
         }
 
         .cell:hover:not(.revealed):not(.flagged) {
             background: #ced4da;
-            transform: scale(1.1);
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .cell.revealed {
             background: #f8f9fa;
             cursor: default;
-            border-color: #ced4da;
+            border-color: #e9ecef;
         }
 
         .cell.mine {
@@ -182,10 +190,6 @@
         .cell.num-6 { color: #008080; }
         .cell.num-7 { color: #000000; }
         .cell.num-8 { color: #808080; }
-
-        .row {
-            clear: both;
-        }
 
         .game-over-overlay, .win-overlay {
             position: fixed;
@@ -237,6 +241,9 @@
             padding: 20px;
             background: #f8f9fa;
             border-radius: 10px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .stats h3 {
@@ -296,6 +303,31 @@
             padding: 5px;
             border-bottom: 1px solid #ffeeba;
         }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .cell {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+            
+            button {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            .info-item {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -333,7 +365,7 @@
             </div>
         </div>
 
-        <div class="board-wrapper">
+        <div class="game-area">
             <div id="gameBoard"></div>
         </div>
 
@@ -452,12 +484,10 @@
         function renderBoard() {
             const gameBoard = document.getElementById('gameBoard');
             gameBoard.innerHTML = '';
-            gameBoard.style.width = (cols * 32) + 'px';
+            gameBoard.style.gridTemplateColumns = `repeat(${cols}, 32px)`;
+            gameBoard.style.gridTemplateRows = `repeat(${rows}, 32px)`;
             
             for (let r = 0; r < rows; r++) {
-                const row = document.createElement('div');
-                row.className = 'row';
-                
                 for (let c = 0; c < cols; c++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
@@ -482,9 +512,21 @@
                         handleRightClick(r, c);
                     });
                     
-                    row.appendChild(cell);
+                    // Touch support for mobile
+                    let touchTimer;
+                    cell.addEventListener('touchstart', (e) => {
+                        touchTimer = setTimeout(() => {
+                            e.preventDefault();
+                            handleRightClick(r, c);
+                        }, 500);
+                    });
+                    
+                    cell.addEventListener('touchend', () => {
+                        clearTimeout(touchTimer);
+                    });
+                    
+                    gameBoard.appendChild(cell);
                 }
-                gameBoard.appendChild(row);
             }
         }
 
@@ -695,6 +737,13 @@
                 li.textContent = `${index + 1}. ${score.difficulty} - ${score.time}s (${score.date})`;
                 highScoresList.appendChild(li);
             });
+            
+            if (stats.highScores.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'No high scores yet';
+                li.style.fontStyle = 'italic';
+                highScoresList.appendChild(li);
+            }
         }
 
         function saveStats() {
