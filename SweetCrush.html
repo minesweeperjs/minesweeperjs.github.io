@@ -19,17 +19,33 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            padding: 10px;
         }
 
         .game-container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 500px;
             width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
             animation: slideIn 0.5s ease;
+        }
+
+        /* Custom scrollbar for game container */
+        .game-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .game-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .game-container::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 3px;
         }
 
         @keyframes slideIn {
@@ -45,7 +61,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -53,60 +69,61 @@
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2em;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .game-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .info-box {
-            flex: 1;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px;
+            padding: 8px 5px;
             border-radius: 10px;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .info-box .label {
-            font-size: 0.9em;
+            font-size: 0.75em;
             opacity: 0.9;
         }
 
         .info-box .value {
-            font-size: 1.5em;
+            font-size: 1.2em;
             font-weight: bold;
-            margin-top: 5px;
+            margin-top: 2px;
         }
 
         .game-board {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 5px;
+            gap: 3px;
             background: rgba(0, 0, 0, 0.1);
-            padding: 10px;
+            padding: 8px;
             border-radius: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
             position: relative;
+            max-width: 100%;
+            aspect-ratio: 1;
         }
 
         .candy {
             aspect-ratio: 1;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
+            font-size: 1.5em;
             position: relative;
             background: white;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -120,7 +137,7 @@
         .candy.selected {
             animation: pulse 0.5s infinite;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-            border: 3px solid #ffd700;
+            border: 2px solid #ffd700;
             transform: scale(1.15);
             z-index: 20;
         }
@@ -290,23 +307,28 @@
         }
 
         .controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 1em;
+            font-size: 0.9em;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         .btn:hover {
@@ -333,6 +355,7 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
         .modal.active {
@@ -347,11 +370,11 @@
 
         .modal-content {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 20px;
             text-align: center;
             max-width: 500px;
-            width: 90%;
+            width: 100%;
             max-height: 80vh;
             display: flex;
             flex-direction: column;
@@ -371,14 +394,14 @@
 
         .modal h2 {
             color: #764ba2;
-            margin-bottom: 20px;
-            font-size: 2em;
+            margin-bottom: 15px;
+            font-size: 1.8em;
         }
 
         .modal p {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #666;
-            font-size: 1.1em;
+            font-size: 1em;
         }
 
         .level-select-container {
@@ -386,7 +409,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .level-select {
@@ -419,7 +442,7 @@
         }
 
         .level-btn {
-            padding: 10px;
+            padding: 8px;
             border: 2px solid #667eea;
             background: white;
             color: #667eea;
@@ -427,10 +450,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: bold;
-            min-height: 40px;
+            min-height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.9em;
         }
 
         .level-btn:hover:not(.locked) {
@@ -451,7 +475,7 @@
             position: absolute;
             top: -5px;
             right: -5px;
-            font-size: 0.8em;
+            font-size: 0.7em;
         }
 
         .level-btn.current {
@@ -478,16 +502,10 @@
             opacity: 0.6;
         }
 
-        .level-btn.locked::after {
-            content: '🔒';
-            margin-left: 5px;
-            font-size: 0.8em;
-        }
-
         .score-animation {
             position: absolute;
             color: #ffd700;
-            font-size: 2em;
+            font-size: 1.8em;
             font-weight: bold;
             pointer-events: none;
             animation: scoreFloat 1.5s ease;
@@ -515,7 +533,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 4em;
+            font-size: 3em;
             font-weight: bold;
             background: linear-gradient(135deg, #ff6b6b, #ffd700);
             -webkit-background-clip: text;
@@ -544,8 +562,8 @@
 
         .particle {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             pointer-events: none;
             animation: particleFly 1s ease forwards;
@@ -588,26 +606,155 @@
             }
         }
 
+        /* Mobile responsive styles */
         @media (max-width: 600px) {
             .game-container {
                 padding: 10px;
+                max-height: 100vh;
             }
             
             .header h1 {
-                font-size: 2em;
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            
+            .game-info {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .info-box {
+                padding: 6px 4px;
+            }
+            
+            .info-box .label {
+                font-size: 0.7em;
+            }
+            
+            .info-box .value {
+                font-size: 1em;
             }
             
             .candy {
-                font-size: 1.5em;
+                font-size: 1.2em;
+                border-radius: 6px;
             }
             
             .game-board {
-                gap: 3px;
+                gap: 2px;
                 padding: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+            
+            .btn {
+                padding: 8px 10px;
+                font-size: 0.85em;
+                border-radius: 15px;
             }
 
             .level-select {
                 grid-template-columns: repeat(5, 1fr);
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .modal h2 {
+                font-size: 1.5em;
+            }
+            
+            .modal p {
+                font-size: 0.9em;
+            }
+        }
+        
+        /* Small mobile screens */
+        @media (max-width: 380px) {
+            .header h1 {
+                font-size: 1.3em;
+            }
+            
+            .game-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .info-box .label {
+                font-size: 0.65em;
+            }
+            
+            .info-box .value {
+                font-size: 0.9em;
+            }
+            
+            .candy {
+                font-size: 1em;
+            }
+            
+            .btn {
+                padding: 7px 8px;
+                font-size: 0.8em;
+            }
+            
+            .controls {
+                gap: 5px;
+            }
+        }
+        
+        /* Landscape orientation */
+        @media (max-height: 600px) and (orientation: landscape) {
+            body {
+                padding: 5px;
+            }
+            
+            .game-container {
+                max-height: 100vh;
+                padding: 8px;
+            }
+            
+            .header h1 {
+                font-size: 1.3em;
+                margin-bottom: 5px;
+            }
+            
+            .game-info {
+                margin-bottom: 8px;
+            }
+            
+            .info-box {
+                padding: 5px 3px;
+            }
+            
+            .info-box .label {
+                font-size: 0.65em;
+            }
+            
+            .info-box .value {
+                font-size: 0.9em;
+            }
+            
+            .game-board {
+                margin-bottom: 8px;
+                padding: 5px;
+            }
+            
+            .candy {
+                font-size: 1em;
+            }
+            
+            .controls {
+                margin-bottom: 5px;
+            }
+            
+            .btn {
+                padding: 6px 10px;
+                font-size: 0.75em;
             }
         }
     </style>
@@ -1176,7 +1323,7 @@
                     
                     const candyRect = firstCandy.getBoundingClientRect();
                     const candySize = candyRect.width;
-                    const gap = 5; // Gap between candies
+                    const gap = 3; // Gap between candies
                     
                     if (group.type === 'horizontal') {
                         line.classList.add('horizontal');
