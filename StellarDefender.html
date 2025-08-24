@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" type="image/x-icon" href="StellarDefender.ico"/>
     <title>Stellar Defender - Space Shooter</title>
     <style>
@@ -19,55 +22,95 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+        }
+
         body {
             background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             font-family: 'Courier New', monospace;
-            overflow: hidden;
             touch-action: none;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Prevent keyboard from pushing content */
+        body.keyboard-open {
+            height: 100vh;
+            position: fixed;
+            width: 100%;
         }
 
         #gameContainer {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            max-width: 100vw;
-            max-height: 100vh;
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
             background: linear-gradient(180deg, #000428 0%, #004e92 100%);
+            overflow: hidden;
+        }
+
+        #gameContainer.bordered {
             border: 3px solid #00ffff;
             box-shadow: 0 0 30px #00ffff;
         }
 
         #gameCanvas {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
         }
 
         #ui {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: env(safe-area-inset-top, 10px);
+            left: env(safe-area-inset-left, 10px);
             color: #00ffff;
-            font-size: 18px;
+            font-size: 16px;
             text-shadow: 0 0 10px #00ffff;
             z-index: 10;
+            padding-top: 10px;
+        }
+
+        #fullscreenBtn {
+            position: absolute;
+            top: env(safe-area-inset-top, 10px);
+            right: env(safe-area-inset-right, 10px);
+            padding: 8px 12px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            border-radius: 5px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 25;
+            margin-top: 10px;
+        }
+
+        #fullscreenBtn:hover {
+            background: rgba(0, 255, 255, 0.3);
         }
 
         #touchControls {
-            position: absolute;
-            bottom: 0;
+            position: fixed;
+            bottom: env(safe-area-inset-bottom, 0);
             left: 0;
             right: 0;
-            height: 180px;
+            height: 200px;
             display: none;
             z-index: 15;
             pointer-events: all;
+            padding-bottom: 10px;
         }
 
         .control-button {
@@ -100,21 +143,21 @@
             width: 60px;
             height: 60px;
             left: 20px;
-            bottom: 60px;
+            bottom: 70px;
         }
 
         #btnRight {
             width: 60px;
             height: 60px;
             left: 140px;
-            bottom: 60px;
+            bottom: 70px;
         }
 
         #btnUp {
             width: 60px;
             height: 60px;
             left: 80px;
-            bottom: 120px;
+            bottom: 130px;
         }
 
         #btnDown {
@@ -128,7 +171,7 @@
             width: 80px;
             height: 80px;
             right: 30px;
-            bottom: 50px;
+            bottom: 60px;
             border-radius: 50%;
             background: rgba(255, 0, 0, 0.2);
             border-color: rgba(255, 0, 0, 0.5);
@@ -194,7 +237,7 @@
         }
 
         #gameOver, #levelComplete, #mainMenu {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -216,7 +259,7 @@
         }
 
         h1 {
-            font-size: 48px;
+            font-size: clamp(28px, 6vw, 48px);
             margin-bottom: 20px;
             text-shadow: 0 0 20px #00ffff;
             background: linear-gradient(45deg, #00ffff, #ff00ff);
@@ -252,12 +295,13 @@
 
         .save-indicator {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: env(safe-area-inset-top, 10px);
+            right: env(safe-area-inset-right, 60px);
             color: #00ff00;
             font-size: 14px;
             display: none;
             animation: fadeOut 2s forwards;
+            margin-top: 10px;
         }
 
         @keyframes fadeOut {
@@ -303,21 +347,23 @@
 
         .touch-indicator {
             position: absolute;
-            top: 50px;
-            right: 10px;
+            top: env(safe-area-inset-top, 50px);
+            right: env(safe-area-inset-right, 10px);
             color: #00ffff;
             font-size: 12px;
             z-index: 10;
             display: none;
+            margin-top: 10px;
         }
 
         #mobileControls {
-            position: absolute;
-            bottom: 10px;
+            position: fixed;
+            bottom: env(safe-area-inset-bottom, 10px);
             left: 50%;
             transform: translateX(-50%);
             display: none;
             z-index: 15;
+            padding-bottom: 10px;
         }
 
         .mobile-toggle {
@@ -330,15 +376,40 @@
             cursor: pointer;
         }
 
-        @media (max-width: 800px) {
-            #gameContainer {
-                width: 100vw;
-                height: 100vh;
-                border: none;
+        /* Fullscreen styles */
+        :fullscreen #gameContainer,
+        :-webkit-full-screen #gameContainer,
+        :-moz-full-screen #gameContainer,
+        :-ms-fullscreen #gameContainer {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Landscape orientation lock suggestion */
+        @media screen and (orientation: portrait) and (max-width: 768px) {
+            .orientation-message {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #00ffff;
+                padding: 20px;
+                border-radius: 10px;
+                border: 2px solid #00ffff;
+                z-index: 30;
+                display: none;
+                text-align: center;
             }
-            
-            h1 {
-                font-size: 32px;
+
+            .orientation-message.show {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #ui {
+                font-size: 14px;
             }
             
             .menu-button {
@@ -346,9 +417,9 @@
                 font-size: 16px;
                 margin: 8px;
             }
-            
-            #ui {
-                font-size: 14px;
+
+            #touchControls {
+                height: 180px;
             }
 
             .control-button {
@@ -359,21 +430,21 @@
                 width: 50px;
                 height: 50px;
                 left: 10px;
-                bottom: 50px;
+                bottom: 60px;
             }
 
             #btnRight {
                 width: 50px;
                 height: 50px;
                 left: 120px;
-                bottom: 50px;
+                bottom: 60px;
             }
 
             #btnUp {
                 width: 50px;
                 height: 50px;
                 left: 65px;
-                bottom: 100px;
+                bottom: 110px;
             }
 
             #btnDown {
@@ -387,7 +458,7 @@
                 width: 70px;
                 height: 70px;
                 right: 20px;
-                bottom: 40px;
+                bottom: 50px;
             }
 
             #mainMenu, #gameOver, #levelComplete {
@@ -405,6 +476,31 @@
             }
         }
 
+        /* iPhone X and newer safe areas */
+        @supports (padding: max(0px)) {
+            #ui {
+                padding-left: max(10px, env(safe-area-inset-left));
+                padding-top: max(10px, env(safe-area-inset-top));
+            }
+
+            #fullscreenBtn {
+                margin-right: max(10px, env(safe-area-inset-right));
+                margin-top: max(10px, env(safe-area-inset-top));
+            }
+
+            #touchControls {
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Hide all input fields to prevent keyboard */
+        input, textarea, select {
+            display: none !important;
+            visibility: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+
         /* Ensure buttons are clickable on all devices */
         button {
             -webkit-appearance: none;
@@ -417,6 +513,8 @@
     <div id="gameContainer">
         <div id="stars"></div>
         <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <button id="fullscreenBtn" aria-label="Toggle Fullscreen">⛶</button>
         
         <div id="ui">
             <div>Level: <span id="level">1</span></div>
@@ -447,7 +545,7 @@
             <p style="color: #00ffff; margin-bottom: 20px;">Defend Earth from the Alien Invasion!</p>
             <button class="menu-button" id="newGameBtn">NEW GAME</button>
             <button class="menu-button" id="continueButton">CONTINUE</button>
-            <p style="color: #888; margin-top: 20px;">Use Arrow Keys or WASD to move<br>SPACE to shoot</p>
+            <p style="color: #888; margin-top: 20px; font-size: 14px;">Use Arrow Keys or WASD to move<br>SPACE to shoot</p>
             <p style="color: #00ffff; margin-top: 10px; font-size: 12px;">Touch controls available on mobile</p>
             <p style="color: #00ff00; margin-top: 10px; font-size: 14px;">Shield bonuses can exceed 100%!</p>
             <p style="color: #ffff00; margin-top: 5px; font-size: 12px;">Don't let enemies reach the bottom!</p>
@@ -469,11 +567,19 @@
             <p id="retryBonus" class="retry-info"></p>
             <button class="menu-button" id="newGameBtn2">NEW GAME</button>
         </div>
+
+        <div class="orientation-message" id="orientationMsg">
+            <p>📱 For best experience, please rotate your device to landscape mode</p>
+        </div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Fullscreen API support
+        let isFullscreen = false;
+        const gameContainer = document.getElementById('gameContainer');
 
         // Touch control variables
         let touchControls = {
@@ -525,18 +631,140 @@
                              (navigator.maxTouchPoints > 0) || 
                              (navigator.msMaxTouchPoints > 0);
 
-        // Resize canvas for mobile
+        // Prevent virtual keyboard from appearing
+        function preventKeyboard() {
+            // Prevent focus on any element that might trigger keyboard
+            document.addEventListener('focusin', (e) => {
+                if (e.target.tagName === 'INPUT' || 
+                    e.target.tagName === 'TEXTAREA' || 
+                    e.target.tagName === 'SELECT') {
+                    e.target.blur();
+                }
+            });
+
+            // Add to body to prevent keyboard
+            document.body.setAttribute('inputmode', 'none');
+            
+            // Prevent zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        }
+
+        // Fullscreen functions
+        function toggleFullscreen() {
+            if (!document.fullscreenElement && 
+                !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && 
+                !document.msFullscreenElement) {
+                // Enter fullscreen
+                if (gameContainer.requestFullscreen) {
+                    gameContainer.requestFullscreen();
+                } else if (gameContainer.webkitRequestFullscreen) {
+                    gameContainer.webkitRequestFullscreen();
+                } else if (gameContainer.mozRequestFullScreen) {
+                    gameContainer.mozRequestFullScreen();
+                } else if (gameContainer.msRequestFullscreen) {
+                    gameContainer.msRequestFullscreen();
+                }
+                
+                // Try to lock orientation to landscape on mobile
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {
+                        // Orientation lock not supported
+                    });
+                }
+                
+                isFullscreen = true;
+                document.getElementById('fullscreenBtn').innerHTML = '✕';
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
+                isFullscreen = false;
+                document.getElementById('fullscreenBtn').innerHTML = '⛶';
+            }
+        }
+
+        // Handle fullscreen changes
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement && 
+                !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && 
+                !document.msFullscreenElement) {
+                isFullscreen = false;
+                document.getElementById('fullscreenBtn').innerHTML = '⛶';
+            } else {
+                isFullscreen = true;
+                document.getElementById('fullscreenBtn').innerHTML = '✕';
+            }
+            resizeCanvas();
+        }
+
+        // Resize canvas for responsive design
         function resizeCanvas() {
             const container = document.getElementById('gameContainer');
             const containerWidth = container.clientWidth;
             const containerHeight = container.clientHeight;
             
-            if (containerWidth < 800 || containerHeight < 600) {
-                const scale = Math.min(containerWidth / 800, containerHeight / 600);
-                canvas.style.transform = `scale(${scale})`;
-                canvas.style.transformOrigin = 'top left';
+            const aspectRatio = 800 / 600;
+            let newWidth, newHeight;
+            
+            if (containerWidth / containerHeight > aspectRatio) {
+                newHeight = containerHeight * 0.9;
+                newWidth = newHeight * aspectRatio;
+            } else {
+                newWidth = containerWidth * 0.9;
+                newHeight = newWidth / aspectRatio;
             }
+            
+            canvas.style.width = newWidth + 'px';
+            canvas.style.height = newHeight + 'px';
         }
+
+        // Handle window resize and orientation change
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            
+            // Check orientation on mobile
+            if (isTouchDevice && window.innerWidth < 768) {
+                const orientationMsg = document.getElementById('orientationMsg');
+                if (window.innerHeight > window.innerWidth) {
+                    if (orientationMsg) orientationMsg.classList.add('show');
+                } else {
+                    if (orientationMsg) orientationMsg.classList.remove('show');
+                }
+            }
+        });
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
+
+        // Prevent scrolling and bouncing on iOS
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('#gameContainer')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         // Toggle touch controls visibility
         function toggleTouchControls() {
@@ -708,7 +936,7 @@
             }
         }
 
-        // Draw functions
+        // Draw functions (same as before)
         function drawPlayer() {
             ctx.save();
             
@@ -880,7 +1108,7 @@
             ctx.restore();
         }
 
-        // Game mechanics
+        // Game mechanics (same as before)
         function createExplosion(x, y, size = 'medium') {
             const colors = ['#ff0000', '#ff6600', '#ffff00', '#ffffff'];
             const particles = [];
@@ -1381,6 +1609,12 @@
             if (e.key === ' ' && gameState === 'playing') {
                 e.preventDefault();
             }
+            
+            // F11 for fullscreen
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
         });
 
         document.addEventListener('keyup', (e) => {
@@ -1398,6 +1632,14 @@
             maxShield = 100;
             initLevel(currentLevel);
             setupTouchControls();
+            
+            // Auto-fullscreen on mobile
+            if (isTouchDevice && !isFullscreen) {
+                setTimeout(() => {
+                    toggleFullscreen();
+                }, 100);
+            }
+            
             gameLoop();
         }
 
@@ -1413,6 +1655,14 @@
                 maxShield = saveData.maxShield || 100;
                 initLevel(currentLevel);
                 setupTouchControls();
+                
+                // Auto-fullscreen on mobile
+                if (isTouchDevice && !isFullscreen) {
+                    setTimeout(() => {
+                        toggleFullscreen();
+                    }, 100);
+                }
+                
                 gameLoop();
             }
         }
@@ -1489,6 +1739,14 @@
 
         // Setup button event listeners with both click and touch support
         function setupMenuButtons() {
+            // Fullscreen button
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            fullscreenBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                toggleFullscreen();
+            });
+
             // New Game button
             const newGameBtn = document.getElementById('newGameBtn');
             newGameBtn.addEventListener('click', startGame);
@@ -1543,25 +1801,26 @@
         }
 
         // Prevent default touch behaviors on the game container
-        const gameContainer = document.getElementById('gameContainer');
-        gameContainer.addEventListener('touchstart', (e) => {
+        const gameContainer2 = document.getElementById('gameContainer');
+        gameContainer2.addEventListener('touchstart', (e) => {
             if (e.target.classList.contains('menu-button') || 
                 e.target.classList.contains('control-button') ||
-                e.target.classList.contains('mobile-toggle')) {
+                e.target.classList.contains('mobile-toggle') ||
+                e.target.id === 'fullscreenBtn') {
                 return;
             }
             e.preventDefault();
         }, { passive: false });
 
-        gameContainer.addEventListener('touchmove', (e) => {
+        gameContainer2.addEventListener('touchmove', (e) => {
             e.preventDefault();
         }, { passive: false });
 
         // Initialize
+        preventKeyboard();
         initStars();
         updateContinueButton();
         resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
         setupMenuButtons();
         
         if (isTouchDevice) {
