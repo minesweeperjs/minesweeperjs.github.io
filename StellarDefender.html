@@ -147,23 +147,50 @@
             padding: 15px 30px;
             font-size: 20px;
             background: linear-gradient(45deg, #00ffff, #0080ff);
-            border: none;
+            border: 2px solid transparent;
             color: white;
             cursor: pointer;
             margin: 10px;
             border-radius: 5px;
             transition: all 0.3s;
             font-family: 'Courier New', monospace;
-            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .menu-button:active:before {
+            width: 300px;
+            height: 300px;
         }
 
         .menu-button:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 0 20px #00ffff;
+            border-color: #00ffff;
         }
 
         .menu-button:active {
-            transform: scale(0.95);
+            transform: scale(0.98);
+        }
+
+        .menu-button:focus {
+            outline: 2px solid #00ffff;
+            outline-offset: 2px;
         }
 
         #gameOver, #levelComplete, #mainMenu {
@@ -175,10 +202,13 @@
             color: #fff;
             display: none;
             z-index: 20;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             padding: 30px;
             border-radius: 10px;
             border: 2px solid #00ffff;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
         }
 
         #mainMenu {
@@ -244,6 +274,13 @@
             background: #444;
             cursor: not-allowed;
             transform: scale(1);
+            opacity: 0.5;
+        }
+
+        #continueButton:disabled:hover {
+            transform: scale(1);
+            box-shadow: none;
+            border-color: transparent;
         }
 
         .warning {
@@ -290,6 +327,7 @@
             color: #00ffff;
             border-radius: 5px;
             font-size: 12px;
+            cursor: pointer;
         }
 
         @media (max-width: 800px) {
@@ -304,8 +342,9 @@
             }
             
             .menu-button {
-                padding: 10px 20px;
+                padding: 12px 24px;
                 font-size: 16px;
+                margin: 8px;
             }
             
             #ui {
@@ -350,12 +389,27 @@
                 right: 20px;
                 bottom: 40px;
             }
+
+            #mainMenu, #gameOver, #levelComplete {
+                padding: 20px;
+            }
         }
 
         @media (hover: none) and (pointer: coarse) {
             .control-button {
                 opacity: 0.7;
             }
+            
+            .menu-button:hover {
+                transform: scale(1);
+            }
+        }
+
+        /* Ensure buttons are clickable on all devices */
+        button {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
     </style>
 </head>
@@ -385,14 +439,14 @@
         </div>
 
         <div id="mobileControls">
-            <button class="mobile-toggle" onclick="toggleTouchControls()">Toggle Controls</button>
+            <button class="mobile-toggle" id="toggleBtn">Toggle Controls</button>
         </div>
 
         <div id="mainMenu">
             <h1>STELLAR DEFENDER</h1>
             <p style="color: #00ffff; margin-bottom: 20px;">Defend Earth from the Alien Invasion!</p>
-            <button class="menu-button" ontouchstart="" onclick="startGame()">NEW GAME</button>
-            <button class="menu-button" id="continueButton" ontouchstart="" onclick="continueGame()">CONTINUE</button>
+            <button class="menu-button" id="newGameBtn">NEW GAME</button>
+            <button class="menu-button" id="continueButton">CONTINUE</button>
             <p style="color: #888; margin-top: 20px;">Use Arrow Keys or WASD to move<br>SPACE to shoot</p>
             <p style="color: #00ffff; margin-top: 10px; font-size: 12px;">Touch controls available on mobile</p>
             <p style="color: #00ff00; margin-top: 10px; font-size: 14px;">Shield bonuses can exceed 100%!</p>
@@ -403,7 +457,7 @@
             <h2 style="font-size: 36px; color: #00ff00;">LEVEL COMPLETE!</h2>
             <div class="score">Score: <span id="levelScore">0</span></div>
             <div id="bonusMessage" style="color: #00ff00; margin: 10px 0;"></div>
-            <button class="menu-button" ontouchstart="" onclick="nextLevel()">NEXT LEVEL</button>
+            <button class="menu-button" id="nextLevelBtn">NEXT LEVEL</button>
         </div>
 
         <div id="gameOver">
@@ -411,9 +465,9 @@
             <p id="gameOverReason" style="color: #ff8888; margin: 10px 0;"></p>
             <div class="score">Final Score: <span id="finalScore">0</span></div>
             <p style="color: #ffff00; margin: 10px 0;">You reached Level <span id="reachedLevel">1</span></p>
-            <button class="menu-button" ontouchstart="" onclick="restartFromCheckpoint()">RETRY LEVEL</button>
+            <button class="menu-button" id="retryBtn">RETRY LEVEL</button>
             <p id="retryBonus" class="retry-info"></p>
-            <button class="menu-button" ontouchstart="" onclick="restartGame()">NEW GAME</button>
+            <button class="menu-button" id="newGameBtn2">NEW GAME</button>
         </div>
     </div>
 
@@ -567,35 +621,27 @@
             });
         }
 
-        // Level configurations
+        // Level configurations (same as before)
         const levelConfigs = [
-            // Levels 1-4
             { enemyRows: 3, enemyCols: 8, enemySpeed: 1, shootChance: 0.001, enemyHealth: 1 },
             { enemyRows: 3, enemyCols: 9, enemySpeed: 1.2, shootChance: 0.0012, enemyHealth: 1 },
             { enemyRows: 4, enemyCols: 8, enemySpeed: 1.3, shootChance: 0.0013, enemyHealth: 1 },
             { enemyRows: 4, enemyCols: 9, enemySpeed: 1.4, shootChance: 0.0014, enemyHealth: 2 },
-            // Boss 1
             { isBoss: true, bossHealth: 50, bossSpeed: 2, bossSize: 80 },
-            // Levels 6-9
             { enemyRows: 4, enemyCols: 10, enemySpeed: 1.5, shootChance: 0.0015, enemyHealth: 2 },
             { enemyRows: 5, enemyCols: 9, enemySpeed: 1.6, shootChance: 0.0016, enemyHealth: 2 },
             { enemyRows: 5, enemyCols: 10, enemySpeed: 1.7, shootChance: 0.0017, enemyHealth: 2 },
             { enemyRows: 5, enemyCols: 10, enemySpeed: 1.8, shootChance: 0.0018, enemyHealth: 3 },
-            // Boss 2
             { isBoss: true, bossHealth: 75, bossSpeed: 2.5, bossSize: 90 },
-            // Levels 11-14
             { enemyRows: 5, enemyCols: 11, enemySpeed: 1.5, shootChance: 0.0019, enemyHealth: 3 },
             { enemyRows: 6, enemyCols: 10, enemySpeed: 1.6, shootChance: 0.002, enemyHealth: 3 },
             { enemyRows: 6, enemyCols: 11, enemySpeed: 1.7, shootChance: 0.0021, enemyHealth: 3 },
             { enemyRows: 6, enemyCols: 11, enemySpeed: 1.8, shootChance: 0.0022, enemyHealth: 4 },
-            // Boss 3
             { isBoss: true, bossHealth: 100, bossSpeed: 2.5, bossSize: 100 },
-            // Levels 16-19
             { enemyRows: 6, enemyCols: 12, enemySpeed: 1.4, shootChance: 0.0021, enemyHealth: 3 },
             { enemyRows: 7, enemyCols: 11, enemySpeed: 1.3, shootChance: 0.0022, enemyHealth: 3 },
             { enemyRows: 7, enemyCols: 11, enemySpeed: 1.2, shootChance: 0.0023, enemyHealth: 4 },
             { enemyRows: 6, enemyCols: 12, enemySpeed: 1.2, shootChance: 0.0023, enemyHealth: 4 },
-            // Final Boss
             { isBoss: true, bossHealth: 150, bossSpeed: 2.5, bossSize: 120 }
         ];
 
@@ -611,7 +657,6 @@
             };
             localStorage.setItem('stellarDefenderSave', JSON.stringify(saveData));
             
-            // Show save indicator
             const indicator = document.getElementById('saveIndicator');
             indicator.style.display = 'block';
             setTimeout(() => {
@@ -667,18 +712,15 @@
         function drawPlayer() {
             ctx.save();
             
-            // Invulnerability effect
             if (player.invulnerable && Math.floor(Date.now() / 100) % 2) {
                 ctx.globalAlpha = 0.5;
             }
             
-            // Enhanced shield glow for over 100%
             if (shield > 100) {
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = '#00ff00';
             }
             
-            // Draw ship body
             ctx.fillStyle = shield > 100 ? '#00ff88' : '#00ffff';
             ctx.beginPath();
             ctx.moveTo(player.x, player.y - 20);
@@ -688,7 +730,6 @@
             ctx.closePath();
             ctx.fill();
             
-            // Draw cockpit
             ctx.fillStyle = '#004080';
             ctx.beginPath();
             ctx.moveTo(player.x, player.y - 10);
@@ -698,14 +739,12 @@
             ctx.closePath();
             ctx.fill();
             
-            // Draw engine glow
             ctx.fillStyle = '#ff6600';
             ctx.beginPath();
             ctx.arc(player.x - 10, player.y + 20, 4, 0, Math.PI * 2);
             ctx.arc(player.x + 10, player.y + 20, 4, 0, Math.PI * 2);
             ctx.fill();
             
-            // Draw shield bubble if over 100%
             if (shield > 100) {
                 ctx.strokeStyle = `rgba(0, 255, 0, ${0.3 + (shield - 100) / 200})`;
                 ctx.lineWidth = 2;
@@ -720,17 +759,14 @@
         function drawEnemy(enemy) {
             ctx.save();
             
-            // Flash red if too close to bottom
             if (enemy.y > 450) {
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = '#ff0000';
             }
             
-            // Different colors based on health
             const colors = ['#ff0000', '#ff6600', '#ffff00', '#00ff00', '#00ffff'];
             ctx.fillStyle = colors[Math.min(enemy.health - 1, colors.length - 1)];
             
-            // Draw enemy ship
             ctx.beginPath();
             ctx.moveTo(enemy.x, enemy.y + 15);
             ctx.lineTo(enemy.x - 15, enemy.y - 15);
@@ -739,7 +775,6 @@
             ctx.closePath();
             ctx.fill();
             
-            // Draw enemy details
             ctx.fillStyle = '#800000';
             ctx.beginPath();
             ctx.arc(enemy.x, enemy.y - 5, 5, 0, Math.PI * 2);
@@ -753,13 +788,11 @@
             
             ctx.save();
             
-            // Boss health bar
             ctx.fillStyle = '#ff0000';
             ctx.fillRect(200, 20, 400, 10);
             ctx.fillStyle = '#00ff00';
             ctx.fillRect(200, 20, (boss.health / boss.maxHealth) * 400, 10);
             
-            // Draw boss ship
             const size = boss.size;
             ctx.fillStyle = '#ff00ff';
             ctx.beginPath();
@@ -771,13 +804,11 @@
             ctx.closePath();
             ctx.fill();
             
-            // Boss details
             ctx.fillStyle = '#8800ff';
             ctx.beginPath();
             ctx.arc(boss.x, boss.y, size/4, 0, Math.PI * 2);
             ctx.fill();
             
-            // Boss weapons
             ctx.fillStyle = '#ffff00';
             ctx.beginPath();
             ctx.arc(boss.x - size/3, boss.y, 8, 0, Math.PI * 2);
@@ -824,7 +855,6 @@
             ctx.translate(powerUp.x, powerUp.y);
             ctx.rotate(Date.now() / 500);
             
-            // Special effect for health power-ups
             if (powerUp.type === 'health') {
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = powerUp.color;
@@ -875,16 +905,15 @@
 
         function spawnPowerUp(x, y) {
             const rand = Math.random();
-            if (rand < 0.15) { // 15% chance total
+            if (rand < 0.15) {
                 const types = ['rapid', 'triple', 'shield', 'health'];
                 const colors = ['#ff00ff', '#00ff00', '#00ffff', '#ffff00'];
                 
-                // Weighted selection
                 let type;
-                if (rand < 0.05) type = 'health';  // 5% chance for health
-                else if (rand < 0.08) type = 'shield';  // 3% chance for shield
-                else if (rand < 0.11) type = 'triple';  // 3% chance for triple
-                else type = 'rapid';  // 4% chance for rapid
+                if (rand < 0.05) type = 'health';
+                else if (rand < 0.08) type = 'shield';
+                else if (rand < 0.11) type = 'triple';
+                else type = 'rapid';
                 
                 powerUps.push({
                     x: x,
@@ -905,24 +934,20 @@
             boss = null;
             enemyReachedBottom = false;
             
-            // Reset player position
             player.x = 400;
             player.y = 500;
             player.powerUp = null;
             player.invulnerable = false;
             
-            // Reset touch controls
             Object.keys(touchControls).forEach(key => {
                 if (key !== 'enabled' && key !== 'lastFireTime') {
                     touchControls[key] = false;
                 }
             });
             
-            // Save checkpoint at the start of each level
             saveCheckpoint();
             
             if (config.isBoss) {
-                // Create boss
                 boss = {
                     x: 400,
                     y: 100,
@@ -935,7 +960,6 @@
                     pattern: 0
                 };
             } else {
-                // Create enemy formation
                 const startX = (800 - (config.enemyCols * 50)) / 2;
                 for (let row = 0; row < config.enemyRows; row++) {
                     for (let col = 0; col < config.enemyCols; col++) {
@@ -953,7 +977,6 @@
         }
 
         function updatePlayer() {
-            // Keyboard movement
             if ((keys['ArrowLeft'] || keys['a'] || touchControls.left) && player.x > 20) {
                 player.x -= player.speed;
             }
@@ -967,7 +990,6 @@
                 player.y += player.speed;
             }
             
-            // Handle firing from keyboard or touch
             if (keys[' '] || touchControls.fire) {
                 const now = Date.now();
                 const shootDelay = player.powerUp && player.powerUp.type === 'rapid' ? 100 : 200;
@@ -977,7 +999,6 @@
                 }
             }
             
-            // Update invulnerability
             if (player.invulnerable) {
                 player.invulnerableTime--;
                 if (player.invulnerableTime <= 0) {
@@ -985,7 +1006,6 @@
                 }
             }
             
-            // Update bullets
             player.bullets = player.bullets.filter(bullet => {
                 bullet.y -= 10;
                 return bullet.y > -10;
@@ -996,20 +1016,17 @@
             const config = levelConfigs[currentLevel - 1];
             
             if (boss) {
-                // Update boss
                 boss.x += boss.speed * boss.direction;
                 if (boss.x <= 100 || boss.x >= 700) {
                     boss.direction *= -1;
                 }
                 
-                // Boss shooting patterns
                 boss.shootTimer++;
                 if (boss.shootTimer > 30) {
                     boss.shootTimer = 0;
                     boss.pattern = (boss.pattern + 1) % 3;
                     
                     if (boss.pattern === 0) {
-                        // Single targeted shot
                         const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
                         enemyBullets.push({
                             x: boss.x,
@@ -1019,7 +1036,6 @@
                             color: '#ff00ff'
                         });
                     } else if (boss.pattern === 1) {
-                        // Triple shot
                         for (let i = -1; i <= 1; i++) {
                             enemyBullets.push({
                                 x: boss.x + i * 30,
@@ -1030,7 +1046,6 @@
                             });
                         }
                     } else {
-                        // Circular burst
                         for (let i = 0; i < 8; i++) {
                             const angle = (i * Math.PI * 2) / 8;
                             enemyBullets.push({
@@ -1044,23 +1059,19 @@
                     }
                 }
             } else {
-                // Check if any enemy is too close to bottom
                 let showWarning = false;
                 enemies.forEach(enemy => {
                     if (enemy.y > 400) {
                         showWarning = true;
                     }
-                    // Check if enemy reached bottom line
                     if (enemy.y > 520) {
                         enemyReachedBottom = true;
                         gameOver('Enemies breached your defenses!');
                     }
                 });
                 
-                // Show/hide warning
                 document.getElementById('warningIndicator').style.display = showWarning ? 'block' : 'none';
                 
-                // Update regular enemies
                 let moveDown = false;
                 enemies.forEach(enemy => {
                     if (enemy.x <= 20 || enemy.x >= 780) {
@@ -1078,7 +1089,6 @@
                 enemies.forEach(enemy => {
                     enemy.x += config.enemySpeed;
                     
-                    // Random shooting
                     if (Math.random() < config.shootChance) {
                         enemyBullets.push({
                             x: enemy.x,
@@ -1091,7 +1101,6 @@
                 });
             }
             
-            // Update enemy bullets
             enemyBullets = enemyBullets.filter(bullet => {
                 bullet.x += bullet.vx || 0;
                 bullet.y += bullet.vy || 4;
@@ -1103,11 +1112,9 @@
             powerUps = powerUps.filter(powerUp => {
                 powerUp.y += powerUp.speed;
                 
-                // Check collision with player
                 if (Math.abs(powerUp.x - player.x) < 30 && 
                     Math.abs(powerUp.y - player.y) < 30) {
                     
-                    // Apply power-up effect
                     switch(powerUp.type) {
                         case 'rapid':
                             player.powerUp = { type: 'rapid', time: 300 };
@@ -1116,9 +1123,7 @@
                             player.powerUp = { type: 'triple', time: 300 };
                             break;
                         case 'shield':
-                            // Enhanced shield logic
                             if (shield >= maxShield) {
-                                // If at max, increase max shield
                                 maxShield += 20;
                                 shield = maxShield;
                                 document.getElementById('bonusMessage').textContent = 'MAX SHIELD INCREASED!';
@@ -1127,7 +1132,6 @@
                             }
                             break;
                         case 'health':
-                            // Health power-up gives extra life or shield boost
                             if (shield >= 100) {
                                 maxShield = Math.min(200, maxShield + 10);
                                 shield = Math.min(maxShield, shield + 20);
@@ -1144,7 +1148,6 @@
                 return powerUp.y < 610;
             });
             
-            // Update power-up timer
             if (player.powerUp) {
                 player.powerUp.time--;
                 if (player.powerUp.time <= 0) {
@@ -1154,7 +1157,6 @@
         }
 
         function checkCollisions() {
-            // Player bullets vs enemies
             player.bullets.forEach((bullet, bulletIndex) => {
                 enemies.forEach((enemy, enemyIndex) => {
                     if (Math.abs(bullet.x - enemy.x) < 20 && 
@@ -1172,7 +1174,6 @@
                     }
                 });
                 
-                // Check boss collision
                 if (boss && Math.abs(bullet.x - boss.x) < boss.size/2 && 
                     Math.abs(bullet.y - boss.y) < boss.size/2) {
                     
@@ -1184,7 +1185,6 @@
                         createExplosion(boss.x, boss.y, 'large');
                         score += 500 * currentLevel;
                         
-                        // Boss drops multiple power-ups
                         for (let i = 0; i < 3; i++) {
                             setTimeout(() => {
                                 if (boss) {
@@ -1201,7 +1201,6 @@
                 }
             });
             
-            // Enemy bullets vs player
             if (!player.invulnerable) {
                 enemyBullets.forEach((bullet, index) => {
                     if (Math.abs(bullet.x - player.x) < 20 && 
@@ -1209,7 +1208,6 @@
                         
                         enemyBullets.splice(index, 1);
                         
-                        // Damage calculation
                         const damage = shield > 100 ? 15 : 20;
                         
                         if (shield > 0) {
@@ -1259,14 +1257,12 @@
 
         function shoot() {
             if (player.powerUp && player.powerUp.type === 'triple') {
-                // Triple shot
                 player.bullets.push(
                     { x: player.x - 10, y: player.y - 20, color: '#00ff00' },
                     { x: player.x, y: player.y - 20, color: '#00ff00' },
                     { x: player.x + 10, y: player.y - 20, color: '#00ff00' }
                 );
             } else {
-                // Normal shot
                 player.bullets.push({ 
                     x: player.x, 
                     y: player.y - 20,
@@ -1283,7 +1279,6 @@
             const shieldElement = document.getElementById('shield');
             shieldElement.textContent = Math.floor(shield);
             
-            // Update shield display based on value
             if (shield > 100) {
                 shieldElement.classList.add('health-bonus');
                 document.getElementById('maxShieldIndicator').style.display = 'block';
@@ -1301,7 +1296,6 @@
                 gameState = 'levelComplete';
                 document.getElementById('levelScore').textContent = score;
                 
-                // Bonus message for perfect shield
                 if (shield >= maxShield) {
                     document.getElementById('bonusMessage').textContent = 
                         `Perfect Shield! Bonus: +${100 * currentLevel} points`;
@@ -1313,7 +1307,6 @@
                 document.getElementById('levelComplete').style.display = 'block';
                 document.getElementById('warningIndicator').style.display = 'none';
                 
-                // Hide touch controls
                 document.getElementById('touchControls').style.display = 'none';
                 document.getElementById('touchIndicator').style.display = 'none';
                 document.getElementById('mobileControls').style.display = 'none';
@@ -1323,14 +1316,13 @@
         }
 
         function gameOver(reason = 'Your ship was destroyed!') {
-            if (gameState === 'gameOver') return; // Prevent multiple game over calls
+            if (gameState === 'gameOver') return;
             
             gameState = 'gameOver';
             document.getElementById('finalScore').textContent = score;
             document.getElementById('reachedLevel').textContent = currentLevel;
             document.getElementById('gameOverReason').textContent = reason;
             
-            // Update retry bonus message based on current state
             const saveData = loadGame();
             let bonusMessage = '';
             if (saveData) {
@@ -1350,7 +1342,6 @@
             document.getElementById('gameOver').style.display = 'block';
             document.getElementById('warningIndicator').style.display = 'none';
             
-            // Hide touch controls
             document.getElementById('touchControls').style.display = 'none';
             document.getElementById('touchIndicator').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
@@ -1359,11 +1350,9 @@
         function gameLoop() {
             if (gameState !== 'playing') return;
             
-            // Clear canvas
             ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Update
             updateStars();
             updatePlayer();
             updateEnemies();
@@ -1373,7 +1362,6 @@
             updateUI();
             checkLevelComplete();
             
-            // Draw
             drawStars();
             drawPlayer();
             enemies.forEach(drawEnemy);
@@ -1397,27 +1385,6 @@
 
         document.addEventListener('keyup', (e) => {
             keys[e.key] = false;
-        });
-
-        // Prevent default touch behaviors
-        document.addEventListener('touchstart', (e) => {
-            if (e.target.closest('#gameContainer')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        document.addEventListener('touchmove', (e) => {
-            if (e.target.closest('#gameContainer')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        // Prevent context menu
-        document.addEventListener('contextmenu', (e) => {
-            if (e.target.closest('#gameContainer')) {
-                e.preventDefault();
-                return false;
-            }
         });
 
         // Game control functions
@@ -1455,28 +1422,25 @@
             
             gameState = 'playing';
             
-            // Load saved data
             const saveData = loadGame();
             if (saveData) {
                 currentLevel = saveData.level;
-                score = Math.floor(saveData.score * 0.8); // 20% score penalty
+                score = Math.floor(saveData.score * 0.8);
                 
-                // Conditional restoration of lives and shield
                 if (saveData.lives < 2) {
-                    lives = 2;  // Restore to 2 lives if less than 2
+                    lives = 2;
                 } else {
-                    lives = saveData.lives;  // Keep current lives if 2 or more
+                    lives = saveData.lives;
                 }
                 
                 if (saveData.shield < 200) {
-                    shield = 200;  // Restore to 200% if less
-                    maxShield = 200;  // Reset max shield to base
+                    shield = 200;
+                    maxShield = 200;
                 } else {
-                    shield = saveData.shield;  // Keep current shield if 100 or more
-                    maxShield = saveData.maxShield || 200;  // Keep max shield
+                    shield = saveData.shield;
+                    maxShield = saveData.maxShield || 200;
                 }
             } else {
-                // Fallback if no save data
                 lives = 2;
                 shield = 200;
                 maxShield = 200;
@@ -1492,16 +1456,16 @@
             currentLevel++;
             
             if (currentLevel > 20) {
-                // Game won!
                 gameState = 'gameOver';
                 document.getElementById('gameOver').innerHTML = `
                     <h2 style="font-size: 48px; color: #00ff00;">VICTORY!</h2>
                     <p style="color: #ffff00; font-size: 24px;">You saved Earth!</p>
                     <div class="score">Final Score: ${score}</div>
                     <p style="color: #00ffff;">Max Shield Reached: ${maxShield}%</p>
-                    <button class="menu-button" ontouchstart="" onclick="restartGame()">PLAY AGAIN</button>
+                    <button class="menu-button" id="playAgainBtn">PLAY AGAIN</button>
                 `;
                 document.getElementById('gameOver').style.display = 'block';
+                document.getElementById('playAgainBtn').addEventListener('click', restartGame);
                 localStorage.removeItem('stellarDefenderSave');
             } else {
                 gameState = 'playing';
@@ -1516,7 +1480,6 @@
             document.getElementById('mainMenu').style.display = 'block';
             gameState = 'menu';
             
-            // Reset touch controls
             document.getElementById('touchControls').style.display = 'none';
             document.getElementById('touchIndicator').style.display = 'none';
             document.getElementById('mobileControls').style.display = 'none';
@@ -1524,13 +1487,83 @@
             updateContinueButton();
         }
 
+        // Setup button event listeners with both click and touch support
+        function setupMenuButtons() {
+            // New Game button
+            const newGameBtn = document.getElementById('newGameBtn');
+            newGameBtn.addEventListener('click', startGame);
+            newGameBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                startGame();
+            });
+
+            // Continue button
+            const continueBtn = document.getElementById('continueButton');
+            continueBtn.addEventListener('click', continueGame);
+            continueBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (!continueBtn.disabled) {
+                    continueGame();
+                }
+            });
+
+            // Next Level button
+            const nextLevelBtn = document.getElementById('nextLevelBtn');
+            nextLevelBtn.addEventListener('click', nextLevel);
+            nextLevelBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                nextLevel();
+            });
+
+            // Retry button
+            const retryBtn = document.getElementById('retryBtn');
+            retryBtn.addEventListener('click', restartFromCheckpoint);
+            retryBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                restartFromCheckpoint();
+            });
+
+            // New Game button in game over screen
+            const newGameBtn2 = document.getElementById('newGameBtn2');
+            newGameBtn2.addEventListener('click', restartGame);
+            newGameBtn2.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                restartGame();
+            });
+
+            // Toggle controls button
+            const toggleBtn = document.getElementById('toggleBtn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', toggleTouchControls);
+                toggleBtn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    toggleTouchControls();
+                });
+            }
+        }
+
+        // Prevent default touch behaviors on the game container
+        const gameContainer = document.getElementById('gameContainer');
+        gameContainer.addEventListener('touchstart', (e) => {
+            if (e.target.classList.contains('menu-button') || 
+                e.target.classList.contains('control-button') ||
+                e.target.classList.contains('mobile-toggle')) {
+                return;
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        gameContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
         // Initialize
         initStars();
         updateContinueButton();
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+        setupMenuButtons();
         
-        // Setup touch controls on load if touch device
         if (isTouchDevice) {
             setupTouchControls();
         }
