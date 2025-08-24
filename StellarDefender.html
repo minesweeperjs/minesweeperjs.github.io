@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="SweetCrush.ico"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="StellarDefender.ico"/>
     <title>Stellar Defender - Space Shooter</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -20,12 +26,15 @@
             min-height: 100vh;
             font-family: 'Courier New', monospace;
             overflow: hidden;
+            touch-action: none;
         }
 
         #gameContainer {
             position: relative;
             width: 800px;
             height: 600px;
+            max-width: 100vw;
+            max-height: 100vh;
             background: linear-gradient(180deg, #000428 0%, #004e92 100%);
             border: 3px solid #00ffff;
             box-shadow: 0 0 30px #00ffff;
@@ -35,6 +44,8 @@
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         #ui {
@@ -45,6 +56,72 @@
             font-size: 18px;
             text-shadow: 0 0 10px #00ffff;
             z-index: 10;
+        }
+
+        #touchControls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            display: none;
+            z-index: 15;
+            pointer-events: all;
+        }
+
+        .touch-zone {
+            position: absolute;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        #moveZone {
+            left: 10px;
+            bottom: 10px;
+            width: 150px;
+            height: 150px;
+        }
+
+        #fireZone {
+            right: 10px;
+            bottom: 10px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        .joystick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 255, 0.5);
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #fireButton {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 0, 0.5);
+            border: 2px solid #ffff00;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffff00;
         }
 
         #gameOver, #levelComplete, #mainMenu {
@@ -162,6 +239,37 @@
             color: #88ff88;
             margin-top: 5px;
         }
+
+        .touch-indicator {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            color: #00ffff;
+            font-size: 12px;
+            z-index: 10;
+            display: none;
+        }
+
+        @media (max-width: 800px) {
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border: none;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+            
+            #ui {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -178,7 +286,17 @@
             <div id="warningIndicator" class="warning" style="display: none;">⚠ ENEMIES APPROACHING!</div>
         </div>
 
+        <div class="touch-indicator" id="touchIndicator">Touch Controls Active</div>
         <div class="save-indicator" id="saveIndicator">Game Saved!</div>
+
+        <div id="touchControls">
+            <div id="moveZone" class="touch-zone">
+                <div id="joystick" class="joystick"></div>
+            </div>
+            <div id="fireZone" class="touch-zone">
+                <div id="fireButton">🔥</div>
+            </div>
+        </div>
 
         <div id="mainMenu">
             <h1>STELLAR DEFENDER</h1>
@@ -186,6 +304,7 @@
             <button onclick="startGame()">NEW GAME</button>
             <button id="continueButton" onclick="continueGame()">CONTINUE</button>
             <p style="color: #888; margin-top: 20px;">Use Arrow Keys or WASD to move<br>SPACE to shoot</p>
+            <p style="color: #00ffff; margin-top: 10px; font-size: 12px;">Touch/Tap controls available on mobile</p>
             <p style="color: #00ff00; margin-top: 10px; font-size: 14px;">Shield bonuses can exceed 100%!</p>
             <p style="color: #ffff00; margin-top: 5px; font-size: 12px;">Don't let enemies reach the bottom!</p>
         </div>
@@ -211,6 +330,17 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Touch control variables
+        let touchControls = {
+            active: false,
+            moveTouch: null,
+            fireTouch: null,
+            moveX: 0,
+            moveY: 0,
+            firing: false,
+            lastFireTime: 0
+        };
 
         // Game state
         let gameState = 'menu';
@@ -245,6 +375,152 @@
 
         // Controls
         const keys = {};
+
+        // Detect touch capability
+        const isTouchDevice = ('ontouchstart' in window) || 
+                             (navigator.maxTouchPoints > 0) || 
+                             (navigator.msMaxTouchPoints > 0);
+
+        // Resize canvas for mobile
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            if (containerWidth < 800 || containerHeight < 600) {
+                const scale = Math.min(containerWidth / 800, containerHeight / 600);
+                canvas.style.transform = `scale(${scale})`;
+                canvas.style.transformOrigin = 'top left';
+            }
+        }
+
+        // Touch control setup
+        function setupTouchControls() {
+            if (!isTouchDevice) return;
+
+            const touchControlsDiv = document.getElementById('touchControls');
+            const moveZone = document.getElementById('moveZone');
+            const fireZone = document.getElementById('fireZone');
+            const joystick = document.getElementById('joystick');
+            const fireButton = document.getElementById('fireButton');
+
+            // Show touch controls when game starts
+            if (gameState === 'playing') {
+                touchControlsDiv.style.display = 'block';
+                document.getElementById('touchIndicator').style.display = 'block';
+            }
+
+            // Movement joystick
+            moveZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                touchControls.moveTouch = touch.identifier;
+                updateJoystick(touch, moveZone, joystick);
+            });
+
+            moveZone.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                for (let touch of e.touches) {
+                    if (touch.identifier === touchControls.moveTouch) {
+                        updateJoystick(touch, moveZone, joystick);
+                        break;
+                    }
+                }
+            });
+
+            moveZone.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                let found = false;
+                for (let touch of e.touches) {
+                    if (touch.identifier === touchControls.moveTouch) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    touchControls.moveTouch = null;
+                    touchControls.moveX = 0;
+                    touchControls.moveY = 0;
+                    joystick.style.transform = 'translate(-50%, -50%)';
+                }
+            });
+
+            // Fire button
+            fireZone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchControls.firing = true;
+                fireButton.style.background = 'rgba(255, 0, 0, 0.7)';
+            });
+
+            fireZone.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                touchControls.firing = false;
+                fireButton.style.background = 'rgba(255, 255, 0, 0.5)';
+            });
+
+            // Direct touch on canvas for quick movement (optional)
+            canvas.addEventListener('touchstart', (e) => {
+                if (gameState === 'playing' && e.touches.length === 1) {
+                    e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    
+                    const targetX = (touch.clientX - rect.left) * scaleX;
+                    const targetY = (touch.clientY - rect.top) * scaleY;
+                    
+                    // Move player towards touch position
+                    if (targetY > 300) { // Only in lower part of screen
+                        player.x = Math.max(20, Math.min(780, targetX));
+                        player.y = Math.max(300, Math.min(580, targetY));
+                    }
+                }
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (gameState === 'playing' && e.touches.length === 1) {
+                    e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    const scaleX = canvas.width / rect.width;
+                    const scaleY = canvas.height / rect.height;
+                    
+                    const targetX = (touch.clientX - rect.left) * scaleX;
+                    const targetY = (touch.clientY - rect.top) * scaleY;
+                    
+                    if (targetY > 300) {
+                        player.x = Math.max(20, Math.min(780, targetX));
+                        player.y = Math.max(300, Math.min(580, targetY));
+                    }
+                }
+            });
+        }
+
+        function updateJoystick(touch, zone, joystick) {
+            const rect = zone.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            let x = touch.clientX - rect.left - centerX;
+            let y = touch.clientY - rect.top - centerY;
+            
+            // Limit to circle
+            const distance = Math.sqrt(x * x + y * y);
+            const maxDistance = rect.width / 2 - 30;
+            
+            if (distance > maxDistance) {
+                x = (x / distance) * maxDistance;
+                y = (y / distance) * maxDistance;
+            }
+            
+            // Update joystick position
+            joystick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+            
+            // Calculate movement direction
+            touchControls.moveX = x / maxDistance;
+            touchControls.moveY = y / maxDistance;
+        }
 
         // Level configurations
         const levelConfigs = [
@@ -625,7 +901,7 @@
         }
 
         function updatePlayer() {
-            // Movement
+            // Keyboard movement
             if ((keys['ArrowLeft'] || keys['a']) && player.x > 20) {
                 player.x -= player.speed;
             }
@@ -637,6 +913,27 @@
             }
             if ((keys['ArrowDown'] || keys['s']) && player.y < 580) {
                 player.y += player.speed;
+            }
+            
+            // Touch movement
+            if (touchControls.moveTouch !== null) {
+                const moveSpeed = player.speed * 1.5; // Slightly faster for touch
+                player.x += touchControls.moveX * moveSpeed;
+                player.y += touchControls.moveY * moveSpeed;
+                
+                // Keep player in bounds
+                player.x = Math.max(20, Math.min(780, player.x));
+                player.y = Math.max(300, Math.min(580, player.y));
+            }
+            
+            // Touch firing
+            if (touchControls.firing) {
+                const now = Date.now();
+                const shootDelay = player.powerUp && player.powerUp.type === 'rapid' ? 100 : 200;
+                if (now - touchControls.lastFireTime > shootDelay) {
+                    shoot();
+                    touchControls.lastFireTime = now;
+                }
             }
             
             // Update invulnerability
@@ -974,6 +1271,11 @@
                 
                 document.getElementById('levelComplete').style.display = 'block';
                 document.getElementById('warningIndicator').style.display = 'none';
+                
+                // Hide touch controls
+                document.getElementById('touchControls').style.display = 'none';
+                document.getElementById('touchIndicator').style.display = 'none';
+                
                 saveGame();
             }
         }
@@ -1005,6 +1307,10 @@
             
             document.getElementById('gameOver').style.display = 'block';
             document.getElementById('warningIndicator').style.display = 'none';
+            
+            // Hide touch controls
+            document.getElementById('touchControls').style.display = 'none';
+            document.getElementById('touchIndicator').style.display = 'none';
         }
 
         function gameLoop() {
@@ -1055,6 +1361,19 @@
             keys[e.key] = false;
         });
 
+        // Prevent default touch behaviors
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.closest('#gameContainer')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('#gameContainer')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
         // Game control functions
         function startGame() {
             document.getElementById('mainMenu').style.display = 'none';
@@ -1065,6 +1384,7 @@
             shield = 100;
             maxShield = 100;
             initLevel(currentLevel);
+            setupTouchControls();
             gameLoop();
         }
 
@@ -1079,6 +1399,7 @@
                 shield = saveData.shield;
                 maxShield = saveData.maxShield || 100;
                 initLevel(currentLevel);
+                setupTouchControls();
                 gameLoop();
             }
         }
@@ -1116,6 +1437,7 @@
             }
             
             initLevel(currentLevel);
+            setupTouchControls();
             gameLoop();
         }
 
@@ -1138,6 +1460,7 @@
             } else {
                 gameState = 'playing';
                 initLevel(currentLevel);
+                setupTouchControls();
                 gameLoop();
             }
         }
@@ -1152,6 +1475,8 @@
         // Initialize
         initStars();
         updateContinueButton();
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
