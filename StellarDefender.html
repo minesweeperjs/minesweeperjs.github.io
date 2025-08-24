@@ -16,6 +16,7 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -63,65 +64,106 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 200px;
+            height: 180px;
             display: none;
             z-index: 15;
             pointer-events: all;
         }
 
-        .touch-zone {
+        .control-button {
             position: absolute;
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            background: rgba(0, 255, 255, 0.2);
             border-radius: 10px;
-        }
-
-        #moveZone {
-            left: 10px;
-            bottom: 10px;
-            width: 150px;
-            height: 150px;
-        }
-
-        #fireZone {
-            right: 10px;
-            bottom: 10px;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(255, 0, 0, 0.1);
-            border-color: rgba(255, 0, 0, 0.3);
-        }
-
-        .joystick {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 255, 255, 0.5);
-            border: 2px solid #00ffff;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        #fireButton {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 0, 0.5);
-            border: 2px solid #ffff00;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 24px;
+            color: #00ffff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .control-button:active,
+        .control-button.pressed {
+            background: rgba(0, 255, 255, 0.5);
+            border-color: #00ffff;
+            transform: scale(0.95);
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        #btnLeft {
+            width: 60px;
+            height: 60px;
+            left: 20px;
+            bottom: 60px;
+        }
+
+        #btnRight {
+            width: 60px;
+            height: 60px;
+            left: 140px;
+            bottom: 60px;
+        }
+
+        #btnUp {
+            width: 60px;
+            height: 60px;
+            left: 80px;
+            bottom: 120px;
+        }
+
+        #btnDown {
+            width: 60px;
+            height: 60px;
+            left: 80px;
+            bottom: 10px;
+        }
+
+        #btnFire {
+            width: 80px;
+            height: 80px;
+            right: 30px;
+            bottom: 50px;
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.5);
             color: #ffff00;
+            font-size: 32px;
+        }
+
+        #btnFire:active,
+        #btnFire.pressed {
+            background: rgba(255, 0, 0, 0.5);
+            border-color: #ff0000;
+            box-shadow: 0 0 20px #ff0000;
+        }
+
+        .menu-button {
+            padding: 15px 30px;
+            font-size: 20px;
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            border: none;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            touch-action: manipulation;
+        }
+
+        .menu-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
         }
 
         #gameOver, #levelComplete, #mainMenu {
@@ -151,24 +193,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-        }
-
-        button {
-            padding: 15px 30px;
-            font-size: 20px;
-            background: linear-gradient(45deg, #00ffff, #0080ff);
-            border: none;
-            color: white;
-            cursor: pointer;
-            margin: 10px;
-            border-radius: 5px;
-            transition: all 0.3s;
-            font-family: 'Courier New', monospace;
-        }
-
-        button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #00ffff;
         }
 
         .score {
@@ -250,6 +274,24 @@
             display: none;
         }
 
+        #mobileControls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 15;
+        }
+
+        .mobile-toggle {
+            padding: 8px 15px;
+            background: rgba(0, 255, 255, 0.3);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
         @media (max-width: 800px) {
             #gameContainer {
                 width: 100vw;
@@ -261,13 +303,58 @@
                 font-size: 32px;
             }
             
-            button {
+            .menu-button {
                 padding: 10px 20px;
                 font-size: 16px;
             }
             
             #ui {
                 font-size: 14px;
+            }
+
+            .control-button {
+                opacity: 0.8;
+            }
+
+            #btnLeft {
+                width: 50px;
+                height: 50px;
+                left: 10px;
+                bottom: 50px;
+            }
+
+            #btnRight {
+                width: 50px;
+                height: 50px;
+                left: 120px;
+                bottom: 50px;
+            }
+
+            #btnUp {
+                width: 50px;
+                height: 50px;
+                left: 65px;
+                bottom: 100px;
+            }
+
+            #btnDown {
+                width: 50px;
+                height: 50px;
+                left: 65px;
+                bottom: 10px;
+            }
+
+            #btnFire {
+                width: 70px;
+                height: 70px;
+                right: 20px;
+                bottom: 40px;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .control-button {
+                opacity: 0.7;
             }
         }
     </style>
@@ -290,21 +377,24 @@
         <div class="save-indicator" id="saveIndicator">Game Saved!</div>
 
         <div id="touchControls">
-            <div id="moveZone" class="touch-zone">
-                <div id="joystick" class="joystick"></div>
-            </div>
-            <div id="fireZone" class="touch-zone">
-                <div id="fireButton">🔥</div>
-            </div>
+            <div id="btnLeft" class="control-button">◄</div>
+            <div id="btnRight" class="control-button">►</div>
+            <div id="btnUp" class="control-button">▲</div>
+            <div id="btnDown" class="control-button">▼</div>
+            <div id="btnFire" class="control-button">🔥</div>
+        </div>
+
+        <div id="mobileControls">
+            <button class="mobile-toggle" onclick="toggleTouchControls()">Toggle Controls</button>
         </div>
 
         <div id="mainMenu">
             <h1>STELLAR DEFENDER</h1>
             <p style="color: #00ffff; margin-bottom: 20px;">Defend Earth from the Alien Invasion!</p>
-            <button onclick="startGame()">NEW GAME</button>
-            <button id="continueButton" onclick="continueGame()">CONTINUE</button>
+            <button class="menu-button" ontouchstart="" onclick="startGame()">NEW GAME</button>
+            <button class="menu-button" id="continueButton" ontouchstart="" onclick="continueGame()">CONTINUE</button>
             <p style="color: #888; margin-top: 20px;">Use Arrow Keys or WASD to move<br>SPACE to shoot</p>
-            <p style="color: #00ffff; margin-top: 10px; font-size: 12px;">Touch/Tap controls available on mobile</p>
+            <p style="color: #00ffff; margin-top: 10px; font-size: 12px;">Touch controls available on mobile</p>
             <p style="color: #00ff00; margin-top: 10px; font-size: 14px;">Shield bonuses can exceed 100%!</p>
             <p style="color: #ffff00; margin-top: 5px; font-size: 12px;">Don't let enemies reach the bottom!</p>
         </div>
@@ -313,7 +403,7 @@
             <h2 style="font-size: 36px; color: #00ff00;">LEVEL COMPLETE!</h2>
             <div class="score">Score: <span id="levelScore">0</span></div>
             <div id="bonusMessage" style="color: #00ff00; margin: 10px 0;"></div>
-            <button onclick="nextLevel()">NEXT LEVEL</button>
+            <button class="menu-button" ontouchstart="" onclick="nextLevel()">NEXT LEVEL</button>
         </div>
 
         <div id="gameOver">
@@ -321,9 +411,9 @@
             <p id="gameOverReason" style="color: #ff8888; margin: 10px 0;"></p>
             <div class="score">Final Score: <span id="finalScore">0</span></div>
             <p style="color: #ffff00; margin: 10px 0;">You reached Level <span id="reachedLevel">1</span></p>
-            <button onclick="restartFromCheckpoint()">RETRY LEVEL</button>
+            <button class="menu-button" ontouchstart="" onclick="restartFromCheckpoint()">RETRY LEVEL</button>
             <p id="retryBonus" class="retry-info"></p>
-            <button onclick="restartGame()">NEW GAME</button>
+            <button class="menu-button" ontouchstart="" onclick="restartGame()">NEW GAME</button>
         </div>
     </div>
 
@@ -333,12 +423,12 @@
 
         // Touch control variables
         let touchControls = {
-            active: false,
-            moveTouch: null,
-            fireTouch: null,
-            moveX: 0,
-            moveY: 0,
-            firing: false,
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            fire: false,
+            enabled: false,
             lastFireTime: 0
         };
 
@@ -394,132 +484,87 @@
             }
         }
 
-        // Touch control setup
-        function setupTouchControls() {
-            if (!isTouchDevice) return;
-
-            const touchControlsDiv = document.getElementById('touchControls');
-            const moveZone = document.getElementById('moveZone');
-            const fireZone = document.getElementById('fireZone');
-            const joystick = document.getElementById('joystick');
-            const fireButton = document.getElementById('fireButton');
-
-            // Show touch controls when game starts
-            if (gameState === 'playing') {
-                touchControlsDiv.style.display = 'block';
-                document.getElementById('touchIndicator').style.display = 'block';
+        // Toggle touch controls visibility
+        function toggleTouchControls() {
+            const controls = document.getElementById('touchControls');
+            if (controls.style.display === 'none' || !controls.style.display) {
+                controls.style.display = 'block';
+            } else {
+                controls.style.display = 'none';
             }
-
-            // Movement joystick
-            moveZone.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                touchControls.moveTouch = touch.identifier;
-                updateJoystick(touch, moveZone, joystick);
-            });
-
-            moveZone.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                for (let touch of e.touches) {
-                    if (touch.identifier === touchControls.moveTouch) {
-                        updateJoystick(touch, moveZone, joystick);
-                        break;
-                    }
-                }
-            });
-
-            moveZone.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                let found = false;
-                for (let touch of e.touches) {
-                    if (touch.identifier === touchControls.moveTouch) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    touchControls.moveTouch = null;
-                    touchControls.moveX = 0;
-                    touchControls.moveY = 0;
-                    joystick.style.transform = 'translate(-50%, -50%)';
-                }
-            });
-
-            // Fire button
-            fireZone.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.firing = true;
-                fireButton.style.background = 'rgba(255, 0, 0, 0.7)';
-            });
-
-            fireZone.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.firing = false;
-                fireButton.style.background = 'rgba(255, 255, 0, 0.5)';
-            });
-
-            // Direct touch on canvas for quick movement (optional)
-            canvas.addEventListener('touchstart', (e) => {
-                if (gameState === 'playing' && e.touches.length === 1) {
-                    e.preventDefault();
-                    const rect = canvas.getBoundingClientRect();
-                    const touch = e.touches[0];
-                    const scaleX = canvas.width / rect.width;
-                    const scaleY = canvas.height / rect.height;
-                    
-                    const targetX = (touch.clientX - rect.left) * scaleX;
-                    const targetY = (touch.clientY - rect.top) * scaleY;
-                    
-                    // Move player towards touch position
-                    if (targetY > 300) { // Only in lower part of screen
-                        player.x = Math.max(20, Math.min(780, targetX));
-                        player.y = Math.max(300, Math.min(580, targetY));
-                    }
-                }
-            });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (gameState === 'playing' && e.touches.length === 1) {
-                    e.preventDefault();
-                    const rect = canvas.getBoundingClientRect();
-                    const touch = e.touches[0];
-                    const scaleX = canvas.width / rect.width;
-                    const scaleY = canvas.height / rect.height;
-                    
-                    const targetX = (touch.clientX - rect.left) * scaleX;
-                    const targetY = (touch.clientY - rect.top) * scaleY;
-                    
-                    if (targetY > 300) {
-                        player.x = Math.max(20, Math.min(780, targetX));
-                        player.y = Math.max(300, Math.min(580, targetY));
-                    }
-                }
-            });
         }
 
-        function updateJoystick(touch, zone, joystick) {
-            const rect = zone.getBoundingClientRect();
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            
-            let x = touch.clientX - rect.left - centerX;
-            let y = touch.clientY - rect.top - centerY;
-            
-            // Limit to circle
-            const distance = Math.sqrt(x * x + y * y);
-            const maxDistance = rect.width / 2 - 30;
-            
-            if (distance > maxDistance) {
-                x = (x / distance) * maxDistance;
-                y = (y / distance) * maxDistance;
+        // Touch control setup
+        function setupTouchControls() {
+            const touchControlsDiv = document.getElementById('touchControls');
+            const buttons = {
+                left: document.getElementById('btnLeft'),
+                right: document.getElementById('btnRight'),
+                up: document.getElementById('btnUp'),
+                down: document.getElementById('btnDown'),
+                fire: document.getElementById('btnFire')
+            };
+
+            // Show touch controls when game starts on touch device
+            if (gameState === 'playing' && isTouchDevice) {
+                touchControlsDiv.style.display = 'block';
+                document.getElementById('touchIndicator').style.display = 'block';
+                document.getElementById('mobileControls').style.display = 'block';
+                touchControls.enabled = true;
             }
-            
-            // Update joystick position
-            joystick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-            
-            // Calculate movement direction
-            touchControls.moveX = x / maxDistance;
-            touchControls.moveY = y / maxDistance;
+
+            // Setup button handlers for each control
+            Object.keys(buttons).forEach(key => {
+                const button = buttons[key];
+                
+                // Touch start
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    touchControls[key] = true;
+                    button.classList.add('pressed');
+                }, { passive: false });
+
+                // Touch end
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    touchControls[key] = false;
+                    button.classList.remove('pressed');
+                }, { passive: false });
+
+                // Touch cancel
+                button.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    touchControls[key] = false;
+                    button.classList.remove('pressed');
+                }, { passive: false });
+
+                // Mouse events for desktop testing
+                button.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    touchControls[key] = true;
+                    button.classList.add('pressed');
+                });
+
+                button.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    touchControls[key] = false;
+                    button.classList.remove('pressed');
+                });
+
+                button.addEventListener('mouseleave', (e) => {
+                    touchControls[key] = false;
+                    button.classList.remove('pressed');
+                });
+            });
+
+            // Prevent context menu on long press
+            touchControlsDiv.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
         }
 
         // Level configurations
@@ -866,6 +911,13 @@
             player.powerUp = null;
             player.invulnerable = false;
             
+            // Reset touch controls
+            Object.keys(touchControls).forEach(key => {
+                if (key !== 'enabled' && key !== 'lastFireTime') {
+                    touchControls[key] = false;
+                }
+            });
+            
             // Save checkpoint at the start of each level
             saveCheckpoint();
             
@@ -902,37 +954,26 @@
 
         function updatePlayer() {
             // Keyboard movement
-            if ((keys['ArrowLeft'] || keys['a']) && player.x > 20) {
+            if ((keys['ArrowLeft'] || keys['a'] || touchControls.left) && player.x > 20) {
                 player.x -= player.speed;
             }
-            if ((keys['ArrowRight'] || keys['d']) && player.x < 780) {
+            if ((keys['ArrowRight'] || keys['d'] || touchControls.right) && player.x < 780) {
                 player.x += player.speed;
             }
-            if ((keys['ArrowUp'] || keys['w']) && player.y > 300) {
+            if ((keys['ArrowUp'] || keys['w'] || touchControls.up) && player.y > 300) {
                 player.y -= player.speed;
             }
-            if ((keys['ArrowDown'] || keys['s']) && player.y < 580) {
+            if ((keys['ArrowDown'] || keys['s'] || touchControls.down) && player.y < 580) {
                 player.y += player.speed;
             }
             
-            // Touch movement
-            if (touchControls.moveTouch !== null) {
-                const moveSpeed = player.speed * 1.5; // Slightly faster for touch
-                player.x += touchControls.moveX * moveSpeed;
-                player.y += touchControls.moveY * moveSpeed;
-                
-                // Keep player in bounds
-                player.x = Math.max(20, Math.min(780, player.x));
-                player.y = Math.max(300, Math.min(580, player.y));
-            }
-            
-            // Touch firing
-            if (touchControls.firing) {
+            // Handle firing from keyboard or touch
+            if (keys[' '] || touchControls.fire) {
                 const now = Date.now();
                 const shootDelay = player.powerUp && player.powerUp.type === 'rapid' ? 100 : 200;
-                if (now - touchControls.lastFireTime > shootDelay) {
+                if (!player.lastShot || now - player.lastShot > shootDelay) {
                     shoot();
-                    touchControls.lastFireTime = now;
+                    player.lastShot = now;
                 }
             }
             
@@ -1275,6 +1316,7 @@
                 // Hide touch controls
                 document.getElementById('touchControls').style.display = 'none';
                 document.getElementById('touchIndicator').style.display = 'none';
+                document.getElementById('mobileControls').style.display = 'none';
                 
                 saveGame();
             }
@@ -1311,6 +1353,7 @@
             // Hide touch controls
             document.getElementById('touchControls').style.display = 'none';
             document.getElementById('touchIndicator').style.display = 'none';
+            document.getElementById('mobileControls').style.display = 'none';
         }
 
         function gameLoop() {
@@ -1349,11 +1392,6 @@
             
             if (e.key === ' ' && gameState === 'playing') {
                 e.preventDefault();
-                const shootDelay = player.powerUp && player.powerUp.type === 'rapid' ? 5 : 10;
-                if (!player.lastShot || Date.now() - player.lastShot > shootDelay * 16) {
-                    shoot();
-                    player.lastShot = Date.now();
-                }
             }
         });
 
@@ -1373,6 +1411,14 @@
                 e.preventDefault();
             }
         }, { passive: false });
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('#gameContainer')) {
+                e.preventDefault();
+                return false;
+            }
+        });
 
         // Game control functions
         function startGame() {
@@ -1453,7 +1499,7 @@
                     <p style="color: #ffff00; font-size: 24px;">You saved Earth!</p>
                     <div class="score">Final Score: ${score}</div>
                     <p style="color: #00ffff;">Max Shield Reached: ${maxShield}%</p>
-                    <button onclick="restartGame()">PLAY AGAIN</button>
+                    <button class="menu-button" ontouchstart="" onclick="restartGame()">PLAY AGAIN</button>
                 `;
                 document.getElementById('gameOver').style.display = 'block';
                 localStorage.removeItem('stellarDefenderSave');
@@ -1469,6 +1515,12 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('mainMenu').style.display = 'block';
             gameState = 'menu';
+            
+            // Reset touch controls
+            document.getElementById('touchControls').style.display = 'none';
+            document.getElementById('touchIndicator').style.display = 'none';
+            document.getElementById('mobileControls').style.display = 'none';
+            
             updateContinueButton();
         }
 
@@ -1477,6 +1529,11 @@
         updateContinueButton();
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+        
+        // Setup touch controls on load if touch device
+        if (isTouchDevice) {
+            setupTouchControls();
+        }
     </script>
 </body>
 </html>
