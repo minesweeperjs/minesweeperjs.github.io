@@ -607,8 +607,16 @@
             canvas.style.height = (targetHeight * canvasScale) + 'px';
             
             // Update ground position based on canvas height
-            groundY = canvas.height - 50;
+            let groundY = canvas.height - 50;
             
+            // Slingshot - position will be updated on resize
+            const slingshot = {
+                x: 150,
+                y: groundY - 80,
+                width: 30,
+                height: 80
+            };
+
             // Update slingshot position
             slingshot.x = canvas.width * 0.125;
             slingshot.y = groundY - 80;
