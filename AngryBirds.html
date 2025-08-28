@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="AngryBirds.ico"/>
     <title>Angry Birds Clone</title>
     <style>
@@ -10,6 +10,12 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -17,14 +23,25 @@
             background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
             overflow: hidden;
             position: relative;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #gameCanvas {
             display: block;
-            margin: 0 auto;
             border: 3px solid #8B4513;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+            max-width: 100%;
+            max-height: 100%;
         }
 
         #ui {
@@ -38,51 +55,78 @@
             z-index: 100;
         }
 
+        #fullscreenBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #fullscreenBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
         #levelSelect {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px;
+            padding: 20px;
             border-radius: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
             z-index: 1000;
-            max-width: 900px;
-            width: 90%;
-            max-height: 80vh;
+            max-width: 90%;
+            width: auto;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
         #levelSelect h2 {
             color: white;
-            margin-bottom: 30px;
-            font-size: 42px;
+            margin-bottom: 20px;
+            font-size: 32px;
             text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
             font-family: 'Comic Sans MS', cursive;
         }
 
         .levelsGrid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 10px;
             margin-top: 20px;
+            padding: 0 10px;
         }
 
         .levelBtn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             border: none;
-            padding: 20px;
-            font-size: 20px;
+            padding: 15px;
+            font-size: 18px;
             font-weight: bold;
             border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
-            min-height: 70px;
+            min-height: 60px;
         }
 
         .levelBtn:hover:not(:disabled) {
@@ -102,14 +146,14 @@
 
         .levelStars {
             position: absolute;
-            bottom: 3px;
+            bottom: 2px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .levelNumber {
-            font-size: 24px;
+            font-size: 20px;
             display: block;
         }
 
@@ -119,38 +163,40 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px;
+            padding: 30px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
             display: none;
             z-index: 1000;
+            max-width: 90%;
         }
 
         #winScreen h2, #loseScreen h2 {
             color: white;
-            font-size: 36px;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 15px;
         }
 
         .stars {
-            font-size: 50px;
-            margin: 20px 0;
+            font-size: 40px;
+            margin: 15px 0;
         }
 
         .actionButtons {
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
 
         .actionBtn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 12px 20px;
+            font-size: 16px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
@@ -169,13 +215,16 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 10px;
+            gap: 8px;
             z-index: 100;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
         }
 
         .birdOption {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border: 3px solid white;
             border-radius: 10px;
             cursor: pointer;
@@ -200,31 +249,60 @@
 
         #instructions {
             position: absolute;
-            top: 10px;
+            top: 70px;
             right: 10px;
             background: rgba(0,0,0,0.7);
             color: white;
-            padding: 15px;
+            padding: 10px;
             border-radius: 10px;
-            max-width: 250px;
-            font-size: 14px;
+            max-width: 200px;
+            font-size: 12px;
             z-index: 100;
+            display: none;
         }
 
         #instructions h3 {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #FFD700;
+            font-size: 14px;
+        }
+
+        #instructionsBtn {
+            position: absolute;
+            top: 70px;
+            right: 10px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #instructionsBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
 
         #menuBtn {
             position: absolute;
             top: 10px;
-            right: 280px;
+            left: 50%;
+            transform: translateX(-50%);
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 8px 16px;
+            font-size: 14px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
@@ -234,13 +312,13 @@
         }
 
         #menuBtn:hover {
-            transform: translateY(-2px);
+            transform: translateX(-50%) translateY(-2px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
 
         .totalScore {
             color: #FFD700;
-            font-size: 18px;
+            font-size: 16px;
             margin-top: 15px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
@@ -249,81 +327,338 @@
             background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 8px 16px;
+            font-size: 12px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         #resetBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
+
+        /* Mobile and tablet responsive styles */
+        @media (max-width: 768px) {
+            #ui {
+                font-size: 16px;
+                top: 5px;
+                left: 5px;
+            }
+
+            #fullscreenBtn, #instructionsBtn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            #instructionsBtn {
+                top: 55px;
+            }
+
+            #levelSelect {
+                padding: 15px;
+            }
+
+            #levelSelect h2 {
+                font-size: 24px;
+                margin-bottom: 15px;
+            }
+
+            .levelsGrid {
+                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+                gap: 8px;
+            }
+
+            .levelBtn {
+                padding: 10px;
+                font-size: 16px;
+                min-height: 50px;
+            }
+
+            .levelNumber {
+                font-size: 18px;
+            }
+
+            .levelStars {
+                font-size: 10px;
+            }
+
+            #winScreen, #loseScreen {
+                padding: 20px;
+            }
+
+            #winScreen h2, #loseScreen h2 {
+                font-size: 22px;
+            }
+
+            .stars {
+                font-size: 32px;
+            }
+
+            .actionBtn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .birdOption {
+                width: 40px;
+                height: 40px;
+            }
+
+            #menuBtn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            #instructions {
+                max-width: 150px;
+                font-size: 10px;
+                padding: 8px;
+                top: 55px;
+            }
+
+            #instructions h3 {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #ui {
+                font-size: 14px;
+            }
+
+            .levelsGrid {
+                grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+                gap: 6px;
+            }
+
+            .levelBtn {
+                padding: 8px;
+                font-size: 14px;
+                min-height: 45px;
+            }
+
+            .levelNumber {
+                font-size: 16px;
+            }
+
+            #levelSelect h2 {
+                font-size: 20px;
+            }
+
+            .birdOption {
+                width: 35px;
+                height: 35px;
+                gap: 5px;
+            }
+        }
+
+        /* Landscape mode adjustments */
+        @media (orientation: landscape) and (max-height: 600px) {
+            #levelSelect {
+                padding: 10px;
+                max-height: 90vh;
+            }
+
+            #levelSelect h2 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .levelsGrid {
+                gap: 5px;
+            }
+
+            .levelBtn {
+                padding: 8px;
+                min-height: 40px;
+            }
+
+            #ui {
+                font-size: 14px;
+            }
+
+            #birdSelector {
+                bottom: 5px;
+            }
+
+            .birdOption {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        /* Fullscreen styles */
+        :fullscreen {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+        }
+
+        :-webkit-full-screen {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+        }
+
+        :-moz-full-screen {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+        }
+
+        :-ms-fullscreen {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+        }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <div>Level: <span id="level">1</span></div>
-        <div>Score: <span id="score">0</span></div>
-        <div>Birds Left: <span id="birdsLeft">5</span></div>
-    </div>
-
-    <button id="menuBtn" onclick="showLevelSelect()" style="display: none;">Menu</button>
-
-    <div id="instructions">
-        <h3>How to Play:</h3>
-        <p>🎯 Drag and release to launch birds</p>
-        <p>💪 Pull back further for more power!</p>
-        <p>🐦 Each bird has unique abilities:</p>
-        <ul style="margin-left: 20px; margin-top: 5px;">
-            <li>Red: Standard bird</li>
-            <li>Blue: Splits into 3 (click)</li>
-            <li>Yellow: Speed boost (click)</li>
-            <li>Black: Explodes (click)</li>
-            <li>White: Drops egg bomb (click)</li>
-        </ul>
-        <p style="margin-top: 10px;">💡 Click while bird is flying to activate special ability!</p>
-    </div>
-
-    <div id="levelSelect">
-        <h2>🐦 Angry Birds 🐦</h2>
-        <div class="levelsGrid" id="levelsGrid"></div>
-        <div class="totalScore">Total Score: <span id="totalScoreDisplay">0</span></div>
-        <button id="resetBtn" onclick="resetProgress()">Reset Progress</button>
-    </div>
-
-    <div id="winScreen">
-        <h2>Level Complete!</h2>
-        <div class="stars" id="starRating">⭐⭐⭐</div>
-        <div style="color: white; font-size: 24px; margin: 10px 0;">Score: <span id="levelScore">0</span></div>
-        <div class="actionButtons">
-            <button class="actionBtn" onclick="nextLevel()">Next Level ➡️</button>
-            <button class="actionBtn" onclick="retryLevel()">Retry 🔄</button>
-            <button class="actionBtn" onclick="showLevelSelect()">Menu 🏠</button>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui">
+            <div>Level: <span id="level">1</span></div>
+            <div>Score: <span id="score">0</span></div>
+            <div>Birds: <span id="birdsLeft">5</span></div>
         </div>
-    </div>
 
-    <div id="loseScreen">
-        <h2>Try Again!</h2>
-        <div class="actionButtons">
-            <button class="actionBtn" onclick="retryLevel()">Retry 🔄</button>
-            <button class="actionBtn" onclick="showLevelSelect()">Menu 🏠</button>
+        <button id="fullscreenBtn" onclick="toggleFullscreen()">⛶</button>
+        <button id="instructionsBtn" onclick="toggleInstructions()">?</button>
+        <button id="menuBtn" onclick="showLevelSelect()" style="display: none;">Menu</button>
+
+        <div id="instructions">
+            <h3>How to Play:</h3>
+            <p>🎯 Drag and release to launch</p>
+            <p>💪 Pull back for more power</p>
+            <p>🐦 Bird abilities:</p>
+            <ul style="margin-left: 15px; margin-top: 3px; font-size: 11px;">
+                <li>Red: Standard</li>
+                <li>Blue: Split (tap)</li>
+                <li>Yellow: Speed (tap)</li>
+                <li>Black: Explode (tap)</li>
+                <li>White: Egg bomb (tap)</li>
+            </ul>
+            <p style="margin-top: 5px;">💡 Tap while flying to activate!</p>
         </div>
+
+        <div id="levelSelect">
+            <h2>🐦 Angry Birds 🐦</h2>
+            <div class="levelsGrid" id="levelsGrid"></div>
+            <div class="totalScore">Total Score: <span id="totalScoreDisplay">0</span></div>
+            <button id="resetBtn" onclick="resetProgress()">Reset Progress</button>
+        </div>
+
+        <div id="winScreen">
+            <h2>Level Complete!</h2>
+            <div class="stars" id="starRating">⭐⭐⭐</div>
+            <div style="color: white; font-size: 20px; margin: 10px 0;">Score: <span id="levelScore">0</span></div>
+            <div class="actionButtons">
+                <button class="actionBtn" onclick="nextLevel()">Next ➡️</button>
+                <button class="actionBtn" onclick="retryLevel()">Retry 🔄</button>
+                <button class="actionBtn" onclick="showLevelSelect()">Menu 🏠</button>
+            </div>
+        </div>
+
+        <div id="loseScreen">
+            <h2>Try Again!</h2>
+            <div class="actionButtons">
+                <button class="actionBtn" onclick="retryLevel()">Retry 🔄</button>
+                <button class="actionBtn" onclick="showLevelSelect()">Menu 🏠</button>
+            </div>
+        </div>
+
+        <div id="birdSelector"></div>
     </div>
-
-    <div id="birdSelector"></div>
-
-    <canvas id="gameCanvas"></canvas>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = 1200;
-        canvas.height = 600;
+        
+        // Responsive canvas sizing
+        let canvasScale = 1;
+        
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const maxWidth = container.clientWidth;
+            const maxHeight = container.clientHeight;
+            
+            // Determine optimal size based on screen
+            let targetWidth = 1200;
+            let targetHeight = 600;
+            
+            // Adjust for mobile devices
+            if (window.innerWidth <= 768) {
+                targetWidth = 800;
+                targetHeight = 400;
+            }
+            
+            if (window.innerWidth <= 480) {
+                targetWidth = 600;
+                targetHeight = 350;
+            }
+            
+            // Calculate scale to fit screen
+            const scaleX = maxWidth / targetWidth;
+            const scaleY = maxHeight / targetHeight;
+            canvasScale = Math.min(scaleX, scaleY, 1);
+            
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            canvas.style.width = (targetWidth * canvasScale) + 'px';
+            canvas.style.height = (targetHeight * canvasScale) + 'px';
+            
+            // Update ground position based on canvas height
+            groundY = canvas.height - 50;
+            
+            // Update slingshot position
+            slingshot.x = canvas.width * 0.125;
+            slingshot.y = groundY - 80;
+        }
+        
+        // Call resize on load and window resize
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Fullscreen functionality
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            const btn = document.getElementById('fullscreenBtn');
+            
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && !document.msFullscreenElement) {
+                // Enter fullscreen
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+                btn.innerHTML = '⛶';
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                btn.innerHTML = '⛶';
+            }
+            
+            // Resize canvas after fullscreen change
+            setTimeout(resizeCanvas, 100);
+        }
+
+        // Toggle instructions
+        function toggleInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
 
         // Game state
         let currentLevel = 1;
@@ -337,6 +672,42 @@
         let unlockedLevels = 1;
         let lastLaunchedBird = null;
         let checkLoseTimeout = null;
+
+        // Physics - adjusted for responsive canvas
+        const gravity = 0.5;
+        const friction = 0.99;
+        let groundY = canvas.height - 50;
+
+        // Slingshot - position will be updated on resize
+        const slingshot = {
+            x: 150,
+            y: groundY - 80,
+            width: 30,
+            height: 80
+        };
+
+        // Arrays for game objects
+        let birds = [];
+        let pigs = [];
+        let blocks = [];
+        let particles = [];
+        let clouds = [];
+
+        // Current bird being launched
+        let currentBird = null;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let dragEnd = { x: 0, y: 0 };
+        let currentPower = 0;
+
+        // Bird types with properties
+        const birdTypes = {
+            red: { color: '#FF0000', size: 25, mass: 1, ability: 'none' },
+            blue: { color: '#00BFFF', size: 20, mass: 0.8, ability: 'split' },
+            yellow: { color: '#FFD700', size: 23, mass: 0.9, ability: 'speed' },
+            black: { color: '#2C2C2C', size: 30, mass: 1.5, ability: 'explode' },
+            white: { color: '#FFFFFF', size: 35, mass: 1.2, ability: 'egg' }
+        };
 
         // Load saved progress from localStorage
         function loadProgress() {
@@ -371,42 +742,6 @@
                 createLevelSelector();
             }
         }
-
-        // Physics
-        const gravity = 0.5;
-        const friction = 0.99;
-        const groundY = canvas.height - 50;
-
-        // Slingshot
-        const slingshot = {
-            x: 150,
-            y: groundY - 80,
-            width: 30,
-            height: 80
-        };
-
-        // Arrays for game objects
-        let birds = [];
-        let pigs = [];
-        let blocks = [];
-        let particles = [];
-        let clouds = [];
-
-        // Current bird being launched
-        let currentBird = null;
-        let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let dragEnd = { x: 0, y: 0 };
-        let currentPower = 0;
-
-        // Bird types with properties
-        const birdTypes = {
-            red: { color: '#FF0000', size: 25, mass: 1, ability: 'none' },
-            blue: { color: '#00BFFF', size: 20, mass: 0.8, ability: 'split' },
-            yellow: { color: '#FFD700', size: 23, mass: 0.9, ability: 'speed' },
-            black: { color: '#2C2C2C', size: 30, mass: 1.5, ability: 'explode' },
-            white: { color: '#FFFFFF', size: 35, mass: 1.2, ability: 'egg' }
-        };
 
         // Particle class for effects
         class Particle {
@@ -511,12 +846,10 @@
                         this.vx *= 0.8;
                     }
 
-                    // Check if bird has stopped moving
                     if (Math.abs(this.vx) < 0.5 && Math.abs(this.vy) < 0.5 && this.y >= groundY - this.size - 5) {
                         this.stopped = true;
                     }
 
-                    // Remove bird if it goes off screen
                     if (this.x < -100 || this.x > canvas.width + 100) {
                         this.stopped = true;
                     }
@@ -818,482 +1151,477 @@
             }
         }
 
-        // Level configurations - 20 levels total
-        const levels = {
-            1: {
-                pigs: [
-                    { x: 800, y: groundY - 30 }
-                ],
-                blocks: [
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 800, y: groundY - 90, width: 120, height: 20, type: 'wood' }
-                ]
-            },
-            2: {
-                pigs: [
-                    { x: 800, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 }
-                ],
-                blocks: [
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 950, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 90, width: 120, height: 20, type: 'wood' },
-                    { x: 900, y: groundY - 90, width: 120, height: 20, type: 'wood' }
-                ]
-            },
-            3: {
-                pigs: [
-                    { x: 800, y: groundY - 110 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 700, y: groundY - 30 }
-                ],
-                blocks: [
-                    { x: 700, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 900, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 750, y: groundY - 90, width: 100, height: 20, type: 'wood' },
-                    { x: 850, y: groundY - 90, width: 100, height: 20, type: 'wood' },
-                    { x: 800, y: groundY - 120, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            4: {
-                pigs: [
-                    { x: 800, y: groundY - 200 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 750, y: groundY - 30 },
-                    { x: 900, y: groundY - 110 }
-                ],
-                blocks: [
-                    { x: 750, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 850, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 800, y: groundY - 50, width: 120, height: 20, type: 'wood' },
-                    { x: 750, y: groundY - 80, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 80, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 110, width: 120, height: 20, type: 'stone' },
-                    { x: 900, y: groundY - 90, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 180, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            5: {
-                pigs: [
-                    { x: 800, y: groundY - 280 },
-                    { x: 750, y: groundY - 110 },
-                    { x: 850, y: groundY - 110 },
-                    { x: 700, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 }
-                ],
-                blocks: [
-                    { x: 700, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 900, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 750, y: groundY - 20, width: 30, height: 40, type: 'wood' },
-                    { x: 850, y: groundY - 20, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 50, width: 200, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 80, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 80, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 110, width: 120, height: 20, type: 'wood' },
-                    { x: 700, y: groundY - 160, width: 30, height: 80, type: 'stone' },
-                    { x: 900, y: groundY - 160, width: 30, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 200, width: 200, height: 20, type: 'stone' },
-                    { x: 800, y: groundY - 260, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            6: {
-                pigs: [
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 800, y: groundY - 150 }
-                ],
-                blocks: [
-                    { x: 700, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 750, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 800, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 850, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 900, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 725, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 775, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 825, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 875, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 750, y: groundY - 100, width: 40, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 100, width: 40, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 100, width: 40, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 140, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            7: {
-                pigs: [
-                    { x: 700, y: groundY - 30 },
-                    { x: 800, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 750, y: groundY - 180 },
-                    { x: 850, y: groundY - 180 }
-                ],
-                blocks: [
-                    { x: 700, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 100, width: 30, height: 40, type: 'stone' },
-                    { x: 700, y: groundY - 140, width: 30, height: 40, type: 'wood' },
-                    { x: 750, y: groundY - 170, width: 80, height: 20, type: 'glass' },
-                    { x: 900, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 900, y: groundY - 100, width: 30, height: 40, type: 'stone' },
-                    { x: 900, y: groundY - 140, width: 30, height: 40, type: 'wood' },
-                    { x: 850, y: groundY - 170, width: 80, height: 20, type: 'glass' },
-                    { x: 800, y: groundY - 40, width: 60, height: 80, type: 'glass' }
-                ]
-            },
-            8: {
-                pigs: [
-                    { x: 800, y: groundY - 30 },
-                    { x: 750, y: groundY - 130 },
-                    { x: 850, y: groundY - 130 },
-                    { x: 800, y: groundY - 230 },
-                    { x: 700, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 }
-                ],
-                blocks: [
-                    { x: 650, y: groundY - 20, width: 30, height: 40, type: 'stone' },
-                    { x: 950, y: groundY - 20, width: 30, height: 40, type: 'stone' },
-                    { x: 700, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 900, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 40, width: 140, height: 80, type: 'wood' },
-                    { x: 750, y: groundY - 100, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 100, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 140, width: 120, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 180, width: 30, height: 60, type: 'wood' },
-                    { x: 850, y: groundY - 180, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 220, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            9: {
-                pigs: [
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 800, y: groundY - 110 },
-                    { x: 700, y: groundY - 190 },
-                    { x: 900, y: groundY - 190 },
-                    { x: 800, y: groundY - 270 }
-                ],
-                blocks: [
-                    { x: 750, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 850, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 90, width: 120, height: 20, type: 'stone' },
-                    { x: 700, y: groundY - 120, width: 30, height: 40, type: 'wood' },
-                    { x: 900, y: groundY - 120, width: 30, height: 40, type: 'wood' },
-                    { x: 750, y: groundY - 120, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 120, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 120, width: 30, height: 40, type: 'glass' },
-                    { x: 700, y: groundY - 170, width: 100, height: 20, type: 'wood' },
-                    { x: 900, y: groundY - 170, width: 100, height: 20, type: 'wood' },
-                    { x: 800, y: groundY - 200, width: 200, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 240, width: 30, height: 60, type: 'wood' },
-                    { x: 850, y: groundY - 240, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 260, width: 100, height: 20, type: 'glass' }
-                ]
-            },
-            10: {
-                pigs: [
-                    { x: 700, y: groundY - 30 },
-                    { x: 800, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 750, y: groundY - 110 },
-                    { x: 850, y: groundY - 110 },
-                    { x: 700, y: groundY - 190 },
-                    { x: 900, y: groundY - 190 },
-                    { x: 800, y: groundY - 270 }
-                ],
-                blocks: [
-                    { x: 650, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 700, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 750, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 800, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 850, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 900, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 950, y: groundY - 20, width: 40, height: 40, type: 'stone' },
-                    { x: 700, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 750, y: groundY - 60, width: 40, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 850, y: groundY - 60, width: 40, height: 40, type: 'glass' },
-                    { x: 900, y: groundY - 60, width: 40, height: 40, type: 'wood' },
-                    { x: 750, y: groundY - 100, width: 100, height: 20, type: 'stone' },
-                    { x: 850, y: groundY - 100, width: 100, height: 20, type: 'stone' },
-                    { x: 700, y: groundY - 140, width: 30, height: 60, type: 'stone' },
-                    { x: 900, y: groundY - 140, width: 30, height: 60, type: 'stone' },
-                    { x: 750, y: groundY - 140, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 140, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 180, width: 200, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 220, width: 30, height: 60, type: 'wood' },
-                    { x: 850, y: groundY - 220, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 260, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            // New levels 11-20
-            11: {
-                pigs: [
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 800, y: groundY - 110 },
-                    { x: 650, y: groundY - 30 }
-                ],
-                blocks: [
-                    { x: 650, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 700, y: groundY - 90, width: 100, height: 20, type: 'stone' },
-                    { x: 800, y: groundY - 90, width: 100, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 120, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            12: {
-                pigs: [
-                    { x: 800, y: groundY - 30 },
-                    { x: 700, y: groundY - 110 },
-                    { x: 900, y: groundY - 110 },
-                    { x: 800, y: groundY - 190 },
-                    { x: 750, y: groundY - 270 },
-                    { x: 850, y: groundY - 270 }
-                ],
-                blocks: [
-                    // Bridge structure
-                    { x: 700, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 900, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 70, width: 180, height: 20, type: 'wood' },
-                    { x: 700, y: groundY - 100, width: 30, height: 40, type: 'glass' },
-                    { x: 900, y: groundY - 100, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 130, width: 180, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 170, width: 30, height: 60, type: 'wood' },
-                    { x: 850, y: groundY - 170, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 200, width: 100, height: 20, type: 'glass' },
-                    { x: 750, y: groundY - 240, width: 30, height: 60, type: 'stone' },
-                    { x: 850, y: groundY - 240, width: 30, height: 60, type: 'stone' },
-                    { x: 800, y: groundY - 280, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            13: {
-                pigs: [
-                    { x: 650, y: groundY - 30 },
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 950, y: groundY - 30 },
-                    { x: 800, y: groundY - 150 }
-                ],
-                blocks: [
-                    // Wall structure
-                    { x: 650, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 950, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 90, width: 320, height: 20, type: 'wood' },
-                    { x: 700, y: groundY - 120, width: 30, height: 40, type: 'wood' },
-                    { x: 900, y: groundY - 120, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 140, width: 180, height: 20, type: 'stone' }
-                ]
-            },
-            14: {
-                pigs: [
-                    { x: 800, y: groundY - 30 },
-                    { x: 700, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 750, y: groundY - 150 },
-                    { x: 850, y: groundY - 150 },
-                    { x: 800, y: groundY - 250 }
-                ],
-                blocks: [
-                    // Diamond formation
-                    { x: 800, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 900, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 750, y: groundY - 90, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 90, width: 30, height: 40, type: 'glass' },
-                    { x: 700, y: groundY - 120, width: 30, height: 40, type: 'stone' },
-                    { x: 900, y: groundY - 120, width: 30, height: 40, type: 'stone' },
-                    { x: 750, y: groundY - 140, width: 100, height: 20, type: 'wood' },
-                    { x: 850, y: groundY - 140, width: 100, height: 20, type: 'wood' },
-                    { x: 800, y: groundY - 180, width: 30, height: 80, type: 'glass' },
-                    { x: 750, y: groundY - 220, width: 30, height: 40, type: 'wood' },
-                    { x: 850, y: groundY - 220, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 240, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            15: {
-                pigs: [
-                    { x: 700, y: groundY - 30 },
-                    { x: 800, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 650, y: groundY - 110 },
-                    { x: 950, y: groundY - 110 },
-                    { x: 750, y: groundY - 190 },
-                    { x: 850, y: groundY - 190 }
-                ],
-                blocks: [
-                    // Complex tower
-                    { x: 700, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 40, width: 40, height: 80, type: 'glass' },
-                    { x: 900, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 650, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 950, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 750, y: groundY - 90, width: 100, height: 20, type: 'stone' },
-                    { x: 850, y: groundY - 90, width: 100, height: 20, type: 'stone' },
-                    { x: 700, y: groundY - 130, width: 30, height: 60, type: 'glass' },
-                    { x: 900, y: groundY - 130, width: 30, height: 60, type: 'glass' },
-                    { x: 750, y: groundY - 170, width: 30, height: 40, type: 'wood' },
-                    { x: 850, y: groundY - 170, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 200, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            16: {
-                pigs: [
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 700, y: groundY - 110 },
-                    { x: 900, y: groundY - 110 },
-                    { x: 800, y: groundY - 190 },
-                    { x: 750, y: groundY - 270 },
-                    { x: 850, y: groundY - 270 },
-                    { x: 800, y: groundY - 350 }
-                ],
-                blocks: [
-                    // Mega tower
-                    { x: 750, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 850, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 900, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 110, width: 140, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 150, width: 30, height: 60, type: 'glass' },
-                    { x: 850, y: groundY - 150, width: 30, height: 60, type: 'glass' },
-                    { x: 800, y: groundY - 190, width: 100, height: 20, type: 'wood' },
-                    { x: 750, y: groundY - 230, width: 30, height: 60, type: 'stone' },
-                    { x: 850, y: groundY - 230, width: 30, height: 60, type: 'stone' },
-                    { x: 800, y: groundY - 270, width: 100, height: 20, type: 'glass' },
-                    { x: 750, y: groundY - 310, width: 30, height: 60, type: 'wood' },
-                    { x: 850, y: groundY - 310, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 350, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            17: {
-                pigs: [
-                    { x: 650, y: groundY - 30 },
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 950, y: groundY - 30 },
-                    { x: 700, y: groundY - 110 },
-                    { x: 900, y: groundY - 110 },
-                    { x: 800, y: groundY - 190 }
-                ],
-                blocks: [
-                    // Fortress
-                    { x: 650, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 950, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 900, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 110, width: 200, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 150, width: 30, height: 60, type: 'glass' },
-                    { x: 850, y: groundY - 150, width: 30, height: 60, type: 'glass' },
-                    { x: 800, y: groundY - 190, width: 100, height: 20, type: 'wood' }
-                ]
-            },
-            18: {
-                pigs: [
-                    { x: 700, y: groundY - 30 },
-                    { x: 800, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 750, y: groundY - 110 },
-                    { x: 850, y: groundY - 110 },
-                    { x: 700, y: groundY - 190 },
-                    { x: 900, y: groundY - 190 },
-                    { x: 800, y: groundY - 270 },
-                    { x: 750, y: groundY - 350 },
-                    { x: 850, y: groundY - 350 }
-                ],
-                blocks: [
-                    // Ultimate challenge
-                    { x: 700, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 800, y: groundY - 40, width: 40, height: 80, type: 'wood' },
-                    { x: 900, y: groundY - 40, width: 40, height: 80, type: 'stone' },
-                    { x: 750, y: groundY - 90, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 90, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 120, width: 140, height: 20, type: 'stone' },
-                    { x: 700, y: groundY - 160, width: 30, height: 60, type: 'wood' },
-                    { x: 900, y: groundY - 160, width: 30, height: 60, type: 'wood' },
-                    { x: 800, y: groundY - 200, width: 200, height: 20, type: 'glass' },
-                    { x: 750, y: groundY - 240, width: 30, height: 60, type: 'stone' },
-                    { x: 850, y: groundY - 240, width: 30, height: 60, type: 'stone' },
-                    { x: 800, y: groundY - 280, width: 100, height: 20, type: 'wood' },
-                    { x: 750, y: groundY - 320, width: 30, height: 60, type: 'glass' },
-                    { x: 850, y: groundY - 320, width: 30, height: 60, type: 'glass' },
-                    { x: 800, y: groundY - 360, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            19: {
-                pigs: [
-                    { x: 650, y: groundY - 30 },
-                    { x: 750, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 950, y: groundY - 30 },
-                    { x: 700, y: groundY - 110 },
-                    { x: 800, y: groundY - 110 },
-                    { x: 900, y: groundY - 110 },
-                    { x: 750, y: groundY - 190 },
-                    { x: 850, y: groundY - 190 }
-                ],
-                blocks: [
-                    // Maze structure
-                    { x: 650, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 800, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 900, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 950, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 90, width: 30, height: 40, type: 'stone' },
-                    { x: 800, y: groundY - 90, width: 30, height: 40, type: 'stone' },
-                    { x: 900, y: groundY - 90, width: 30, height: 40, type: 'stone' },
-                    { x: 750, y: groundY - 130, width: 100, height: 20, type: 'wood' },
-                    { x: 850, y: groundY - 130, width: 100, height: 20, type: 'wood' },
-                    { x: 750, y: groundY - 170, width: 30, height: 40, type: 'glass' },
-                    { x: 850, y: groundY - 170, width: 30, height: 40, type: 'glass' },
-                    { x: 800, y: groundY - 200, width: 100, height: 20, type: 'stone' }
-                ]
-            },
-            20: {
-                pigs: [
-                    { x: 650, y: groundY - 30 },
-                    { x: 700, y: groundY - 30 },
-                    { x: 750, y: groundY - 30 },
-                    { x: 800, y: groundY - 30 },
-                    { x: 850, y: groundY - 30 },
-                    { x: 900, y: groundY - 30 },
-                    { x: 950, y: groundY - 30 },
-                    { x: 700, y: groundY - 110 },
-                    { x: 900, y: groundY - 110 },
-                    { x: 750, y: groundY - 190 },
-                    { x: 850, y: groundY - 190 },
-                    { x: 800, y: groundY - 270 }
-                ],
-                blocks: [
-                    // Final boss level
-                    { x: 650, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 750, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 800, y: groundY - 40, width: 30, height: 80, type: 'wood' },
-                    { x: 850, y: groundY - 40, width: 30, height: 80, type: 'glass' },
-                    { x: 900, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 950, y: groundY - 40, width: 30, height: 80, type: 'stone' },
-                    { x: 700, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 900, y: groundY - 90, width: 30, height: 40, type: 'wood' },
-                    { x: 800, y: groundY - 110, width: 140, height: 20, type: 'stone' },
-                    { x: 750, y: groundY - 150, width: 30, height: 60, type: 'glass' },
-                    { x: 850, y: groundY - 150, width: 30, height: 60, type: 'glass' },
-                    { x: 800, y: groundY - 190, width: 100, height: 20, type: 'wood' },
-                    { x: 750, y: groundY - 230, width: 30, height: 60, type: 'stone' },
-                    { x: 850, y: groundY - 230, width: 30, height: 60, type: 'stone' },
-                    { x: 800, y: groundY - 270, width: 100, height: 20, type: 'glass' },
-                    { x: 700, y: groundY - 150, width: 30, height: 80, type: 'stone' },
-                    { x: 900, y: groundY - 150, width: 30, height: 80, type: 'stone' }
-                ]
-            }
-        };
+        // Level configurations - adjusted for responsive canvas
+        function getLevelConfig(levelNum) {
+            const baseX = canvas.width * 0.65;
+            const configs = {
+                1: {
+                    pigs: [
+                        { x: baseX, y: groundY - 30 }
+                    ],
+                    blocks: [
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX, y: groundY - 90, width: 120, height: 20, type: 'wood' }
+                    ]
+                },
+                2: {
+                    pigs: [
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 }
+                    ],
+                    blocks: [
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX + 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 90, width: 120, height: 20, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 90, width: 120, height: 20, type: 'wood' }
+                    ]
+                },
+                3: {
+                    pigs: [
+                        { x: baseX, y: groundY - 110 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 30 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 90, width: 100, height: 20, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 90, width: 100, height: 20, type: 'wood' },
+                        { x: baseX, y: groundY - 120, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                4: {
+                    pigs: [
+                        { x: baseX, y: groundY - 200 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 110 }
+                    ],
+                    blocks: [
+                        { x: baseX - 50, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX, y: groundY - 50, width: 120, height: 20, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 80, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 80, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 110, width: 120, height: 20, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 90, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 180, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                5: {
+                    pigs: [
+                        { x: baseX, y: groundY - 280 },
+                        { x: baseX - 50, y: groundY - 110 },
+                        { x: baseX + 50, y: groundY - 110 },
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 20, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 20, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 50, width: 200, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 80, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 80, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 110, width: 120, height: 20, type: 'wood' },
+                        { x: baseX - 100, y: groundY - 160, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 160, width: 30, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 200, width: 200, height: 20, type: 'stone' },
+                        { x: baseX, y: groundY - 260, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                6: {
+                    pigs: [
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX, y: groundY - 150 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX - 75, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX - 25, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX + 25, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX + 75, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 100, width: 40, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 100, width: 40, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 100, width: 40, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 140, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                7: {
+                    pigs: [
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 180 },
+                        { x: baseX + 50, y: groundY - 180 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 100, width: 30, height: 40, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 140, width: 30, height: 40, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 170, width: 80, height: 20, type: 'glass' },
+                        { x: baseX + 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 100, width: 30, height: 40, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 140, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 170, width: 80, height: 20, type: 'glass' },
+                        { x: baseX, y: groundY - 40, width: 60, height: 80, type: 'glass' }
+                    ]
+                },
+                8: {
+                    pigs: [
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 130 },
+                        { x: baseX + 50, y: groundY - 130 },
+                        { x: baseX, y: groundY - 230 },
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 20, width: 30, height: 40, type: 'stone' },
+                        { x: baseX + 150, y: groundY - 20, width: 30, height: 40, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 40, width: 140, height: 80, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 100, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 100, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 140, width: 120, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 180, width: 30, height: 60, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 180, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 220, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                9: {
+                    pigs: [
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX, y: groundY - 110 },
+                        { x: baseX - 100, y: groundY - 190 },
+                        { x: baseX + 100, y: groundY - 190 },
+                        { x: baseX, y: groundY - 270 }
+                    ],
+                    blocks: [
+                        { x: baseX - 50, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 90, width: 120, height: 20, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 120, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 120, width: 30, height: 40, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 120, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 120, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 120, width: 30, height: 40, type: 'glass' },
+                        { x: baseX - 100, y: groundY - 170, width: 100, height: 20, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 170, width: 100, height: 20, type: 'wood' },
+                        { x: baseX, y: groundY - 200, width: 200, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 240, width: 30, height: 60, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 240, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 260, width: 100, height: 20, type: 'glass' }
+                    ]
+                },
+                10: {
+                    pigs: [
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 110 },
+                        { x: baseX + 50, y: groundY - 110 },
+                        { x: baseX - 100, y: groundY - 190 },
+                        { x: baseX + 100, y: groundY - 190 },
+                        { x: baseX, y: groundY - 270 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX + 150, y: groundY - 20, width: 40, height: 40, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 60, width: 40, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 60, width: 40, height: 40, type: 'glass' },
+                        { x: baseX + 100, y: groundY - 60, width: 40, height: 40, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 100, width: 100, height: 20, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 100, width: 100, height: 20, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 140, width: 30, height: 60, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 140, width: 30, height: 60, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 140, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 140, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 180, width: 200, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 220, width: 30, height: 60, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 220, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 260, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                11: {
+                    pigs: [
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX, y: groundY - 110 },
+                        { x: baseX - 150, y: groundY - 30 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX - 100, y: groundY - 90, width: 100, height: 20, type: 'stone' },
+                        { x: baseX, y: groundY - 90, width: 100, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 120, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                12: {
+                    pigs: [
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 110 },
+                        { x: baseX + 100, y: groundY - 110 },
+                        { x: baseX, y: groundY - 190 },
+                        { x: baseX - 50, y: groundY - 270 },
+                        { x: baseX + 50, y: groundY - 270 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 70, width: 180, height: 20, type: 'wood' },
+                        { x: baseX - 100, y: groundY - 100, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 100, y: groundY - 100, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 130, width: 180, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 170, width: 30, height: 60, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 170, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 200, width: 100, height: 20, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 240, width: 30, height: 60, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 240, width: 30, height: 60, type: 'stone' },
+                        { x: baseX, y: groundY - 280, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                13: {
+                    pigs: [
+                        { x: baseX - 150, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX + 150, y: groundY - 30 },
+                        { x: baseX, y: groundY - 150 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 90, width: 320, height: 20, type: 'wood' },
+                        { x: baseX - 100, y: groundY - 120, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 120, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 140, width: 180, height: 20, type: 'stone' }
+                    ]
+                },
+                14: {
+                    pigs: [
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 150 },
+                        { x: baseX + 50, y: groundY - 150 },
+                        { x: baseX, y: groundY - 250 }
+                    ],
+                    blocks: [
+                        { x: baseX, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 90, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 90, width: 30, height: 40, type: 'glass' },
+                        { x: baseX - 100, y: groundY - 120, width: 30, height: 40, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 120, width: 30, height: 40, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 140, width: 100, height: 20, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 140, width: 100, height: 20, type: 'wood' },
+                        { x: baseX, y: groundY - 180, width: 30, height: 80, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 220, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 220, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 240, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                15: {
+                    pigs: [
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX - 150, y: groundY - 110 },
+                        { x: baseX + 150, y: groundY - 110 },
+                        { x: baseX - 50, y: groundY - 190 },
+                        { x: baseX + 50, y: groundY - 190 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 40, width: 40, height: 80, type: 'glass' },
+                        { x: baseX + 100, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX - 150, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 150, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 90, width: 100, height: 20, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 90, width: 100, height: 20, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 130, width: 30, height: 60, type: 'glass' },
+                        { x: baseX + 100, y: groundY - 130, width: 30, height: 60, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 170, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 170, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 200, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                16: {
+                    pigs: [
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 110 },
+                        { x: baseX + 100, y: groundY - 110 },
+                        { x: baseX, y: groundY - 190 },
+                        { x: baseX - 50, y: groundY - 270 },
+                        { x: baseX + 50, y: groundY - 270 },
+                        { x: baseX, y: groundY - 350 }
+                    ],
+                    blocks: [
+                        { x: baseX - 50, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 110, width: 140, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 150, width: 30, height: 60, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 150, width: 30, height: 60, type: 'glass' },
+                        { x: baseX, y: groundY - 190, width: 100, height: 20, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 230, width: 30, height: 60, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 230, width: 30, height: 60, type: 'stone' },
+                        { x: baseX, y: groundY - 270, width: 100, height: 20, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 310, width: 30, height: 60, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 310, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 350, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                17: {
+                    pigs: [
+                        { x: baseX - 150, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX + 150, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 110 },
+                        { x: baseX + 100, y: groundY - 110 },
+                        { x: baseX, y: groundY - 190 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 110, width: 200, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 150, width: 30, height: 60, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 150, width: 30, height: 60, type: 'glass' },
+                        { x: baseX, y: groundY - 190, width: 100, height: 20, type: 'wood' }
+                    ]
+                },
+                18: {
+                    pigs: [
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 110 },
+                        { x: baseX + 50, y: groundY - 110 },
+                        { x: baseX - 100, y: groundY - 190 },
+                        { x: baseX + 100, y: groundY - 190 },
+                        { x: baseX, y: groundY - 270 },
+                        { x: baseX - 50, y: groundY - 350 },
+                        { x: baseX + 50, y: groundY - 350 }
+                    ],
+                    blocks: [
+                        { x: baseX - 100, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX, y: groundY - 40, width: 40, height: 80, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 40, width: 40, height: 80, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 90, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 90, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 120, width: 140, height: 20, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 160, width: 30, height: 60, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 160, width: 30, height: 60, type: 'wood' },
+                        { x: baseX, y: groundY - 200, width: 200, height: 20, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 240, width: 30, height: 60, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 240, width: 30, height: 60, type: 'stone' },
+                        { x: baseX, y: groundY - 280, width: 100, height: 20, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 320, width: 30, height: 60, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 320, width: 30, height: 60, type: 'glass' },
+                        { x: baseX, y: groundY - 360, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                19: {
+                    pigs: [
+                        { x: baseX - 150, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX + 150, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 110 },
+                        { x: baseX, y: groundY - 110 },
+                        { x: baseX + 100, y: groundY - 110 },
+                        { x: baseX - 50, y: groundY - 190 },
+                        { x: baseX + 50, y: groundY - 190 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 90, width: 30, height: 40, type: 'stone' },
+                        { x: baseX, y: groundY - 90, width: 30, height: 40, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 90, width: 30, height: 40, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 130, width: 100, height: 20, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 130, width: 100, height: 20, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 170, width: 30, height: 40, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 170, width: 30, height: 40, type: 'glass' },
+                        { x: baseX, y: groundY - 200, width: 100, height: 20, type: 'stone' }
+                    ]
+                },
+                20: {
+                    pigs: [
+                        { x: baseX - 150, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 30 },
+                        { x: baseX - 50, y: groundY - 30 },
+                        { x: baseX, y: groundY - 30 },
+                        { x: baseX + 50, y: groundY - 30 },
+                        { x: baseX + 100, y: groundY - 30 },
+                        { x: baseX + 150, y: groundY - 30 },
+                        { x: baseX - 100, y: groundY - 110 },
+                        { x: baseX + 100, y: groundY - 110 },
+                        { x: baseX - 50, y: groundY - 190 },
+                        { x: baseX + 50, y: groundY - 190 },
+                        { x: baseX, y: groundY - 270 }
+                    ],
+                    blocks: [
+                        { x: baseX - 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX, y: groundY - 40, width: 30, height: 80, type: 'wood' },
+                        { x: baseX + 50, y: groundY - 40, width: 30, height: 80, type: 'glass' },
+                        { x: baseX + 100, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 150, y: groundY - 40, width: 30, height: 80, type: 'stone' },
+                        { x: baseX - 100, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX + 100, y: groundY - 90, width: 30, height: 40, type: 'wood' },
+                        { x: baseX, y: groundY - 110, width: 140, height: 20, type: 'stone' },
+                        { x: baseX - 50, y: groundY - 150, width: 30, height: 60, type: 'glass' },
+                        { x: baseX + 50, y: groundY - 150, width: 30, height: 60, type: 'glass' },
+                        { x: baseX, y: groundY - 190, width: 100, height: 20, type: 'wood' },
+                        { x: baseX - 50, y: groundY - 230, width: 30, height: 60, type: 'stone' },
+                        { x: baseX + 50, y: groundY - 230, width: 30, height: 60, type: 'stone' },
+                        { x: baseX, y: groundY - 270, width: 100, height: 20, type: 'glass' },
+                        { x: baseX - 100, y: groundY - 150, width: 30, height: 80, type: 'stone' },
+                        { x: baseX + 100, y: groundY - 150, width: 30, height: 80, type: 'stone' }
+                    ]
+                }
+            };
+            
+            return configs[levelNum] || configs[1];
+        }
 
         // Initialize clouds
         for (let i = 0; i < 5; i++) {
@@ -1367,7 +1695,6 @@
                 selectedBirdType = type;
                 createBirdSelector();
                 
-                // Immediately update the current bird if one exists
                 if (currentBird && !currentBird.launched) {
                     currentBird.type = type;
                     currentBird.properties = birdTypes[type];
@@ -1378,14 +1705,13 @@
 
         // Load level
         function loadLevel(levelNum) {
-            const level = levels[levelNum];
+            const level = getLevelConfig(levelNum);
             pigs = [];
             blocks = [];
             birds = [];
             particles = [];
             lastLaunchedBird = null;
             
-            // Clear any existing timeout
             if (checkLoseTimeout) {
                 clearTimeout(checkLoseTimeout);
                 checkLoseTimeout = null;
@@ -1443,7 +1769,6 @@
             document.getElementById('loseScreen').style.display = 'none';
             document.getElementById('menuBtn').style.display = 'none';
             
-            // Clear any existing timeout
             if (checkLoseTimeout) {
                 clearTimeout(checkLoseTimeout);
                 checkLoseTimeout = null;
@@ -1524,11 +1849,9 @@
             pigs = pigs.filter(pig => pig.health > 0);
             blocks = blocks.filter(block => block.health > 0);
             
-            // Check win condition
             if (pigs.length === 0 && gameState === 'playing') {
                 gameState = 'won';
                 
-                // Clear any existing timeout
                 if (checkLoseTimeout) {
                     clearTimeout(checkLoseTimeout);
                     checkLoseTimeout = null;
@@ -1554,15 +1877,11 @@
                 }, 1000);
             }
             
-            // Check lose condition - improved logic
             if (birdsRemaining === 0 && !currentBird && pigs.length > 0 && gameState === 'playing') {
-                // Check if all birds have stopped
                 let allBirdsStopped = birds.every(bird => bird.stopped || !bird.launched);
                 
                 if (allBirdsStopped && !checkLoseTimeout) {
-                    // Wait a bit to make sure everything has settled
                     checkLoseTimeout = setTimeout(() => {
-                        // Double check that we're still in a lose state
                         if (pigs.length > 0 && gameState === 'playing') {
                             gameState = 'lost';
                             document.getElementById('loseScreen').style.display = 'block';
@@ -1621,7 +1940,6 @@
         // Draw power indicator
         function drawPowerIndicator() {
             if (isDragging && currentBird && !currentBird.launched) {
-                // Draw power arc
                 ctx.save();
                 ctx.strokeStyle = `rgba(255, ${255 - currentPower * 2.55}, 0, 0.8)`;
                 ctx.lineWidth = 5 + currentPower / 10;
@@ -1634,7 +1952,6 @@
                 
                 ctx.restore();
                 
-                // Draw power text
                 ctx.save();
                 ctx.fillStyle = `rgba(255, ${255 - currentPower * 2.55}, 0, 1)`;
                 ctx.font = 'bold 20px Arial';
@@ -1644,7 +1961,7 @@
             }
         }
 
-        // Draw trajectory preview - FIXED to match actual trajectory
+        // Draw trajectory preview
         function drawTrajectory() {
             if (isDragging && currentBird) {
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -1652,7 +1969,6 @@
                 ctx.setLineDash([5, 5]);
                 ctx.beginPath();
                 
-                // Calculate initial velocity exactly as it will be when launched
                 const dx = slingshot.x - currentBird.x;
                 const dy = slingshot.y - currentBird.y;
                 const power = currentPower / 100;
@@ -1664,7 +1980,6 @@
                 
                 ctx.moveTo(x, y);
                 
-                // Simulate the exact physics that will happen
                 for (let i = 0; i < 50; i++) {
                     vx *= friction;
                     vy += gravity;
@@ -1725,31 +2040,47 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // Get mouse/touch position relative to canvas
+        function getInputPosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            // Account for canvas scaling
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            
+            return { x, y };
+        }
+
         // Mouse/Touch controls
         canvas.addEventListener('mousedown', (e) => {
             if (!currentBird || currentBird.launched) return;
             
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const pos = getInputPosition(e);
+            const dist = Math.hypot(pos.x - currentBird.x, pos.y - currentBird.y);
             
-            const dist = Math.hypot(x - currentBird.x, y - currentBird.y);
             if (dist < currentBird.size * 2) {
                 isDragging = true;
-                dragStart.x = x;
-                dragStart.y = y;
+                dragStart.x = pos.x;
+                dragStart.y = pos.y;
             }
         });
 
         canvas.addEventListener('mousemove', (e) => {
             if (!isDragging || !currentBird) return;
             
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const pos = getInputPosition(e);
             
-            let dx = x - slingshot.x;
-            let dy = y - slingshot.y;
+            let dx = pos.x - slingshot.x;
+            let dy = pos.y - slingshot.y;
             const maxDist = 150;
             const dist = Math.hypot(dx, dy);
             
@@ -1761,7 +2092,6 @@
             currentBird.x = slingshot.x + dx;
             currentBird.y = slingshot.y + dy;
             
-            // Calculate power percentage
             currentPower = Math.min(100, (dist / maxDist) * 100);
         });
 
@@ -1803,28 +2133,91 @@
         // Touch controls for mobile
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousedown', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
-        });
+            
+            if (!currentBird || currentBird.launched) return;
+            
+            const pos = getInputPosition(e);
+            const dist = Math.hypot(pos.x - currentBird.x, pos.y - currentBird.y);
+            
+            if (dist < currentBird.size * 2) {
+                isDragging = true;
+                dragStart.x = pos.x;
+                dragStart.y = pos.y;
+            }
+        }, { passive: false });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
-        });
+            
+            if (!isDragging || !currentBird) return;
+            
+            const pos = getInputPosition(e);
+            
+            let dx = pos.x - slingshot.x;
+            let dy = pos.y - slingshot.y;
+            const maxDist = 150;
+            const dist = Math.hypot(dx, dy);
+            
+            if (dist > maxDist) {
+                dx = (dx / dist) * maxDist;
+                dy = (dy / dist) * maxDist;
+            }
+            
+            currentBird.x = slingshot.x + dx;
+            currentBird.y = slingshot.y + dy;
+            
+            currentPower = Math.min(100, (dist / maxDist) * 100);
+        }, { passive: false });
 
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            const mouseEvent = new MouseEvent('mouseup', {});
-            canvas.dispatchEvent(mouseEvent);
+            
+            if (isDragging && currentBird) {
+                isDragging = false;
+                
+                const dx = slingshot.x - currentBird.x;
+                const dy = slingshot.y - currentBird.y;
+                const power = currentPower / 100;
+                
+                currentBird.vx = dx * 0.25 * (1 + power);
+                currentBird.vy = dy * 0.25 * (1 + power);
+                currentBird.launched = true;
+                lastLaunchedBird = currentBird;
+                
+                birdsRemaining--;
+                currentBird = null;
+                currentPower = 0;
+                
+                createBirdSelector();
+                
+                setTimeout(() => {
+                    if (birdsRemaining > 0 && gameState === 'playing') {
+                        loadBird();
+                        createBirdSelector();
+                    }
+                }, 2000);
+            } else if (lastLaunchedBird && lastLaunchedBird.launched && !lastLaunchedBird.abilityUsed) {
+                // Tap to activate ability
+                lastLaunchedBird.useAbility();
+            }
+        }, { passive: false });
+
+        // Prevent default touch behaviors
+        document.addEventListener('touchstart', (e) => {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.target === canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
         });
 
         // Load saved progress on start
