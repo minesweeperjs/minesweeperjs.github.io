@@ -18,12 +18,12 @@ A lightweight, browser-based implementation of the classic puzzle game **Mineswe
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/minesweeperjs/minesweeperjs.github.io.git
+   git clone https://github.com/minesweeperjs/minesweeperjs.github.io
    ```
 2. Navigate to the project folder:
 
    ```bash
-   cd minesweeperjs
+   cd minesweeperjs.github.io
    ```
 3. Open `index.html` in your browser.
 
