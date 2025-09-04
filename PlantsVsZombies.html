@@ -204,17 +204,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             min-width: 140px;
         }
 
-        #playerInfo {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9em;
-            color: #333;
-            background: rgba(255,255,255,0.5);
-            padding: 5px 10px;
-            border-radius: 10px;
-        }
-
         #plantSelection {
             display: flex;
             gap: 8px;
@@ -501,10 +490,21 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             min-width: 30px;
         }
 
-        .leaderboard-name {
+        .leaderboard-datetime {
             flex: 1;
             text-align: left;
             margin: 0 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .leaderboard-date {
+            font-size: 0.9em;
+        }
+
+        .leaderboard-time {
+            font-size: 0.75em;
+            opacity: 0.8;
         }
 
         .leaderboard-score {
@@ -512,31 +512,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             color: #764ba2;
         }
 
-        .leaderboard-date {
-            font-size: 0.8em;
-            color: #666;
-            position: absolute;
-            bottom: 2px;
-            right: 15px;
-        }
-
         .leaderboard-entry.gold .leaderboard-score,
         .leaderboard-entry.silver .leaderboard-score,
-        .leaderboard-entry.bronze .leaderboard-score,
-        .leaderboard-entry.gold .leaderboard-date,
-        .leaderboard-entry.silver .leaderboard-date,
-        .leaderboard-entry.bronze .leaderboard-date {
+        .leaderboard-entry.bronze .leaderboard-score {
             color: rgba(255,255,255,0.9);
-        }
-
-        #nameInput {
-            padding: 10px;
-            font-size: 1.1em;
-            border: 2px solid #764ba2;
-            border-radius: 10px;
-            margin: 10px 0;
-            width: 100%;
-            max-width: 250px;
         }
 
         .stats {
@@ -676,7 +655,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             <div id="leftPanel">
                 <div id="sunCounter">☀️ <span id="sunCount">200</span></div>
                 <div id="scoreCounter">⭐ <span id="scoreCount">0</span></div>
-                <div id="playerInfo">👤 <span id="playerName">Guest</span></div>
             </div>
             
             <div id="plantSelection">
@@ -753,7 +731,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
         </div>
         
         <div id="leaderboard">
-            <h2>🏆 Top 10 Players</h2>
+            <h2>🏆 Top 10 Scores</h2>
             <div id="leaderboardList"></div>
             <button class="btn" onclick="closeLeaderboard()">Close</button>
         </div>
@@ -764,9 +742,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 <p>Final Score: <span id="finalScore">0</span></p>
                 <p>Waves Survived: <span id="finalWave">0</span></p>
                 <p>Zombies Defeated: <span id="finalZombies">0</span></p>
-            </div>
-            <div id="nameInputSection">
-                <input type="text" id="nameInput" placeholder="Enter your name" maxlength="20">
             </div>
             <div>
                 <button class="btn" onclick="saveScore()">Save Score</button>
@@ -793,39 +768,38 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             cellSize: { width: 0, height: 0 },
             boardRect: null,
             gameSpeed: 1,
-            lastUpdate: Date.now(),
-            playerName: ''
+            lastUpdate: Date.now()
         };
 
-        // Enhanced Plant Types - ALL PLANTS CAN SHOOT
+        // Enhanced Plant Types - ALL PLANTS SHOOT + 20% MORE HEALTH
         const plantTypes = {
             sunflower: { 
                 emoji: '🌻', 
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 produces: 'sun', 
                 interval: 7000,
                 shoots: true,
                 damage: 0.5,
-                shootInterval: 2000,
+                shootInterval: 2500,
                 projectile: '☀️',
                 description: 'Produces sun and shoots'
             },
             peashooter: { 
                 emoji: '🌱', 
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 shoots: true, 
                 damage: 1, 
                 interval: 1500,
                 shootInterval: 1500,
                 projectile: '🟢',
-                description: 'Shoots peas'
+                description: 'Basic shooter'
             },
             wallnut: { 
                 emoji: '🥥', 
-                health: 20,
-                maxHealth: 20,
+                health: 24,  // +20% from 20
+                maxHealth: 24,
                 shoots: true,
                 damage: 0.3,
                 interval: 3000,
@@ -835,8 +809,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             snowpea: { 
                 emoji: '❄️', 
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 shoots: true, 
                 damage: 1, 
                 slow: true, 
@@ -847,8 +821,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             chomper: { 
                 emoji: '🌿', 
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 melee: true, 
                 damage: 999, 
                 interval: 3000,
@@ -860,8 +834,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             repeater: { 
                 emoji: '🌾', 
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 shoots: true, 
                 damage: 1, 
                 double: true, 
@@ -872,8 +846,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             threepeater: {
                 emoji: '🎋',
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 shoots: true,
                 damage: 1,
                 triple: true,
@@ -884,8 +858,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             firepea: {
                 emoji: '🔥',
-                health: 3,
-                maxHealth: 3,
+                health: 3.6,  // +20% from 3
+                maxHealth: 3.6,
                 shoots: true,
                 damage: 2,
                 fire: true,
@@ -896,8 +870,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             cactus: {
                 emoji: '🌵',
-                health: 4,
-                maxHealth: 4,
+                health: 4.8,  // +20% from 4
+                maxHealth: 4.8,
                 shoots: true,
                 damage: 1,
                 pierce: true,
@@ -917,36 +891,35 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             strong: { emoji: '👹', health: 60, maxHealth: 60, speed: 6, damage: 2, points: 600 }
         };
 
-        // Load saved player name
-        function loadPlayerName() {
-            const savedName = localStorage.getItem('pvz_playerName');
-            if (savedName) {
-                gameState.playerName = savedName;
-                document.getElementById('playerName').textContent = savedName;
-                // Hide name input if name already saved
-                const nameSection = document.getElementById('nameInputSection');
-                if (nameSection) {
-                    nameSection.style.display = 'none';
-                }
-            }
-        }
-
-        // Format date for display
-        function formatDate(dateString) {
+        // Format date and time for display
+        function formatDateTime(dateString) {
             const date = new Date(dateString);
             const now = new Date();
             const diffTime = Math.abs(now - date);
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
+            const timeStr = date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            let dateStr;
             if (diffDays === 0) {
-                return 'Today';
+                dateStr = 'Today';
             } else if (diffDays === 1) {
-                return 'Yesterday';
+                dateStr = 'Yesterday';
             } else if (diffDays < 7) {
-                return `${diffDays} days ago`;
+                dateStr = `${diffDays} days ago`;
             } else {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dateStr = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                });
             }
+            
+            return { date: dateStr, time: timeStr };
         }
 
         // Leaderboard Functions
@@ -955,22 +928,14 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             return saved ? JSON.parse(saved) : [];
         }
 
-        function saveToLeaderboard(name, score, wave, zombies) {
+        function saveToLeaderboard(score, wave, zombies) {
             let leaderboard = getLeaderboard();
             
-            // Save player name for future use
-            if (name && name !== 'Guest') {
-                localStorage.setItem('pvz_playerName', name);
-                gameState.playerName = name;
-                document.getElementById('playerName').textContent = name;
-            }
-            
             leaderboard.push({
-                name: name || gameState.playerName || 'Guest',
                 score: score,
                 wave: wave,
                 zombies: zombies,
-                date: new Date().toISOString()
+                datetime: new Date().toISOString()
             });
             
             // Sort by score and keep top 10
@@ -1000,12 +965,15 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 else if (index === 2) entryDiv.classList.add('bronze');
                 
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                const { date, time } = formatDateTime(entry.datetime);
                 
                 entryDiv.innerHTML = `
                     <span class="leaderboard-rank">${medal}</span>
-                    <span class="leaderboard-name">${entry.name}</span>
+                    <div class="leaderboard-datetime">
+                        <span class="leaderboard-date">${date}</span>
+                        <span class="leaderboard-time">${time}</span>
+                    </div>
                     <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
-                    <span class="leaderboard-date">${formatDate(entry.date)}</span>
                 `;
                 
                 listElement.appendChild(entryDiv);
@@ -1022,30 +990,18 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
         }
 
         function saveScore() {
-            const nameInput = document.getElementById('nameInput');
-            const name = nameInput ? nameInput.value.trim() : gameState.playerName;
-            
-            saveToLeaderboard(name || 'Guest', gameState.score, gameState.wave, gameState.zombiesDefeated);
+            saveToLeaderboard(gameState.score, gameState.wave, gameState.zombiesDefeated);
             showLeaderboard();
         }
 
         // Initialize Game
         function init() {
             createBoard();
-            loadPlayerName();
             loadGameState();
             setupEventListeners();
             startGameLoop();
             spawnSunPeriodically();
             setTimeout(() => spawnZombieWave(), 5000);
-            
-            // Show name input section only if no saved name
-            if (gameState.playerName) {
-                const nameSection = document.getElementById('nameInputSection');
-                if (nameSection) {
-                    nameSection.style.display = 'none';
-                }
-            }
         }
 
         // Create Game Board
@@ -1244,6 +1200,9 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             
             const now = Date.now();
             const plantType = plantTypes[plant.type];
+            
+            // All plants can shoot now
+            if (!plantType.shoots) return;
             
             const interval = plantType.shootInterval || plantType.interval;
             
@@ -1696,6 +1655,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                             }
                         }
                         
+                        // ALL plants can shoot
                         if (plantType.shoots) {
                             shoot(plant);
                         }
@@ -1744,14 +1704,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             document.getElementById('finalScore').textContent = gameState.score.toLocaleString();
             document.getElementById('finalWave').textContent = gameState.wave;
             document.getElementById('finalZombies').textContent = gameState.zombiesDefeated;
-            
-            // Show/hide name input based on saved name
-            const nameSection = document.getElementById('nameInputSection');
-            if (gameState.playerName && gameState.playerName !== 'Guest') {
-                nameSection.style.display = 'none';
-            } else {
-                nameSection.style.display = 'block';
-            }
         }
 
         // Restart Game
