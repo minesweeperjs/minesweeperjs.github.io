@@ -41,6 +41,16 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             overflow: hidden;
         }
 
+        /* Fullscreen mode adjustments */
+        body:fullscreen #gameContainer,
+        body:-webkit-full-screen #gameContainer,
+        body:-moz-full-screen #gameContainer,
+        body:-ms-fullscreen #gameContainer {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0;
+        }
+
         #gameBoard {
             position: absolute;
             top: 150px;
@@ -195,6 +205,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             gap: 10px;
             align-items: center;
             backdrop-filter: blur(10px);
+            z-index: 10;
         }
 
         #leftPanel {
@@ -548,7 +559,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
 
         #wave {
             position: absolute;
-            top: 10px;
+            top: 150px;
             right: 20px;
             font-size: 1.2em;
             font-weight: bold;
@@ -558,6 +569,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             padding: 10px 20px;
             border-radius: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 9;
         }
 
         .damage-effect {
@@ -587,11 +599,54 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             100% { transform: scale(0) rotate(360deg); opacity: 0; }
         }
 
+        /* Landscape mode optimizations */
+        @media (orientation: landscape) and (max-height: 600px) {
+            #ui {
+                height: 100px;
+            }
+            
+            #gameBoard {
+                top: 110px;
+                bottom: 20px;
+            }
+            
+            #wave {
+                top: 110px;
+            }
+            
+            .plantCard {
+                min-width: 55px;
+                width: 55px;
+                height: 75px;
+            }
+            
+            .plantCard .emoji {
+                font-size: 1.3em;
+            }
+            
+            .controlBtn {
+                padding: 5px 8px;
+                font-size: 0.85em;
+            }
+            
+            #sunCounter, #scoreCounter {
+                font-size: 0.95em;
+                padding: 6px 12px;
+            }
+        }
+
         @media (max-width: 768px) {
             #gameBoard {
                 left: 10px;
                 right: 10px;
                 top: 140px;
+            }
+            
+            #wave {
+                top: 140px;
+                right: 10px;
+                font-size: 1em;
+                padding: 8px 15px;
             }
             
             .plantCard {
@@ -647,9 +702,53 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             border-radius: 5px;
             display: none;
         }
+
+        /* Force landscape message */
+        #landscapeMessage {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #landscapeMessage h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        #landscapeMessage p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        @media (orientation: portrait) and (max-width: 768px) {
+            #landscapeMessage {
+                display: flex;
+            }
+            
+            #gameContainer {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
+    <div id="landscapeMessage">
+        <h2>📱 Rotate Your Device</h2>
+        <p>Please rotate your device to landscape mode for the best gaming experience!</p>
+        <div style="font-size: 4em;">↻</div>
+    </div>
+
     <div id="gameContainer">
         <div id="ui">
             <div id="leftPanel">
@@ -771,11 +870,11 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             lastUpdate: Date.now()
         };
 
-        // Enhanced Plant Types - ALL PLANTS SHOOT + 20% MORE HEALTH
+        // Enhanced Plant Types - FIXED SHOOTING & CHOMPER -10%
         const plantTypes = {
             sunflower: { 
                 emoji: '🌻', 
-                health: 3.6,  // +20% from 3
+                health: 3.6,
                 maxHealth: 3.6,
                 produces: 'sun', 
                 interval: 7000,
@@ -787,42 +886,39 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             peashooter: { 
                 emoji: '🌱', 
-                health: 3.6,  // +20% from 3
+                health: 3.6,
                 maxHealth: 3.6,
                 shoots: true, 
                 damage: 1, 
-                interval: 1500,
                 shootInterval: 1500,
                 projectile: '🟢',
                 description: 'Basic shooter'
             },
             wallnut: { 
                 emoji: '🥥', 
-                health: 24,  // +20% from 20
+                health: 24,
                 maxHealth: 24,
                 shoots: true,
                 damage: 0.3,
-                interval: 3000,
                 shootInterval: 3000,
                 projectile: '🟤',
                 description: 'Defensive wall that shoots'
             },
             snowpea: { 
                 emoji: '❄️', 
-                health: 3.6,  // +20% from 3
+                health: 3.6,
                 maxHealth: 3.6,
                 shoots: true, 
                 damage: 1, 
                 slow: true, 
-                interval: 2000,
                 shootInterval: 2000,
                 projectile: '❄️',
                 description: 'Slows zombies'
             },
             chomper: { 
                 emoji: '🌿', 
-                health: 3.6,  // +20% from 3
-                maxHealth: 3.6,
+                health: 3.24,  // Reduced by 10% from 3.6
+                maxHealth: 3.24,
                 melee: true, 
                 damage: 999, 
                 interval: 3000,
@@ -834,48 +930,44 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             repeater: { 
                 emoji: '🌾', 
-                health: 3.6,  // +20% from 3
+                health: 3.6,
                 maxHealth: 3.6,
                 shoots: true, 
                 damage: 1, 
                 double: true, 
-                interval: 1500,
                 shootInterval: 1500,
                 projectile: '🟢',
                 description: 'Shoots twice'
             },
             threepeater: {
                 emoji: '🎋',
-                health: 3.6,  // +20% from 3
+                health: 3.6,
                 maxHealth: 3.6,
                 shoots: true,
                 damage: 1,
                 triple: true,
-                interval: 1500,
                 shootInterval: 1500,
                 projectile: '🟢',
                 description: 'Shoots 3 lanes'
             },
             firepea: {
                 emoji: '🔥',
-                health: 3.6,  // +20% from 3
+                health: 3.6,
                 maxHealth: 3.6,
                 shoots: true,
                 damage: 2,
                 fire: true,
-                interval: 1500,
                 shootInterval: 1500,
                 projectile: '🔥',
                 description: 'Fire damage'
             },
             cactus: {
                 emoji: '🌵',
-                health: 4.8,  // +20% from 4
+                health: 4.8,
                 maxHealth: 4.8,
                 shoots: true,
                 damage: 1,
                 pierce: true,
-                interval: 1800,
                 shootInterval: 1800,
                 projectile: '📍',
                 description: 'Piercing shots'
@@ -1068,6 +1160,17 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
 
             window.addEventListener('resize', updateBoardDimensions);
+            
+            // Force landscape on mobile
+            if (window.screen && window.screen.orientation) {
+                document.getElementById('fullscreenBtn').addEventListener('click', () => {
+                    if (window.screen.orientation.lock) {
+                        window.screen.orientation.lock('landscape').catch(err => {
+                            console.log('Orientation lock failed:', err);
+                        });
+                    }
+                });
+            }
         }
 
         // Select Plant
@@ -1194,27 +1297,27 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }, 5000);
         }
 
-        // Enhanced Shoot Projectile - ALL PLANTS CAN SHOOT
+        // FIXED Shoot Projectile
         function shoot(plant) {
             if (!plant.element || !plant.element.parentElement) return;
             
             const now = Date.now();
             const plantType = plantTypes[plant.type];
             
-            // All plants can shoot now
             if (!plantType.shoots) return;
             
-            const interval = plantType.shootInterval || plantType.interval;
+            const shootInterval = plantType.shootInterval || 1500;
             
-            if (now - plant.lastShot < interval / gameState.gameSpeed) return;
+            if (now - plant.lastShot < shootInterval / gameState.gameSpeed) return;
             
+            // Check for zombies in range
             let targetRows = [plant.row];
             if (plantType.triple) {
                 targetRows = [plant.row - 1, plant.row, plant.row + 1].filter(r => r >= 0 && r < 5);
             }
             
             const hasTarget = targetRows.some(row => 
-                gameState.zombies.some(z => z.row === row && z.element && z.x < (plant.col + 1) * gameState.cellSize.width)
+                gameState.zombies.some(z => z.row === row && z.element && z.x > plant.col * gameState.cellSize.width)
             );
             
             if (!hasTarget) return;
@@ -1711,14 +1814,38 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             location.reload();
         }
 
-        // Toggle Fullscreen
+        // Toggle Fullscreen with landscape orientation
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log('Fullscreen error:', err);
-                });
+                const elem = document.documentElement;
+                
+                // Request fullscreen
+                const requestFS = elem.requestFullscreen || 
+                                 elem.webkitRequestFullscreen || 
+                                 elem.mozRequestFullScreen || 
+                                 elem.msRequestFullscreen;
+                
+                if (requestFS) {
+                    requestFS.call(elem).then(() => {
+                        // Try to lock orientation to landscape
+                        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+                            window.screen.orientation.lock('landscape').catch(err => {
+                                console.log('Orientation lock not supported:', err);
+                            });
+                        }
+                    }).catch(err => {
+                        console.log('Fullscreen error:', err);
+                    });
+                }
             } else {
-                document.exitFullscreen();
+                const exitFS = document.exitFullscreen || 
+                              document.webkitExitFullscreen || 
+                              document.mozCancelFullScreen || 
+                              document.msExitFullscreen;
+                
+                if (exitFS) {
+                    exitFS.call(document);
+                }
             }
         }
 
