@@ -570,6 +570,15 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             border-radius: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             z-index: 9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #wave .damage-bonus {
+            font-size: 0.7em;
+            margin-top: 3px;
+            opacity: 0.9;
         }
 
         .damage-effect {
@@ -816,7 +825,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             </div>
         </div>
         
-        <div id="wave">Wave: <span id="waveCount">1</span></div>
+        <div id="wave">
+            <div>Wave: <span id="waveCount">1</span></div>
+            <div class="damage-bonus">DMG: +<span id="damageBonus">0</span>%</div>
+        </div>
         
         <div id="gameBoard"></div>
         
@@ -867,10 +879,11 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             cellSize: { width: 0, height: 0 },
             boardRect: null,
             gameSpeed: 1,
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            zombieDamageMultiplier: 1.0  // Starts at 1.0, increases by 2% per wave
         };
 
-        // Enhanced Plant Types - FIXED SHOOTING & CHOMPER -10%
+        // Enhanced Plant Types - CHOMPER REDUCED BY 20%
         const plantTypes = {
             sunflower: { 
                 emoji: '🌻', 
@@ -917,8 +930,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             chomper: { 
                 emoji: '🌿', 
-                health: 3.24,  // Reduced by 10% from 3.6
-                maxHealth: 3.24,
+                health: 2.88,  // Reduced by 20% from 3.6
+                maxHealth: 2.88,
                 melee: true, 
                 damage: 999, 
                 interval: 3000,
@@ -982,6 +995,17 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             fast: { emoji: '💀', health: 6, maxHealth: 6, speed: 20, damage: 1, points: 150 },
             strong: { emoji: '👹', health: 60, maxHealth: 60, speed: 6, damage: 2, points: 600 }
         };
+
+        // Calculate zombie damage with wave multiplier
+        function getZombieDamage(baseZombieDamage) {
+            return baseZombieDamage * gameState.zombieDamageMultiplier;
+        }
+
+        // Update damage multiplier display
+        function updateDamageDisplay() {
+            const bonusPercent = Math.round((gameState.zombieDamageMultiplier - 1) * 100);
+            document.getElementById('damageBonus').textContent = bonusPercent;
+        }
 
         // Format date and time for display
         function formatDateTime(dateString) {
@@ -1093,6 +1117,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             setupEventListeners();
             startGameLoop();
             spawnSunPeriodically();
+            updateDamageDisplay();
             setTimeout(() => spawnZombieWave(), 5000);
         }
 
@@ -1114,7 +1139,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             setTimeout(updateBoardDimensions, 100);
         }
 
-        // Update board dimensions
+        // Update board dimensions - FIXED FOR FULLSCREEN
         function updateBoardDimensions() {
             const board = document.getElementById('gameBoard');
             gameState.boardRect = board.getBoundingClientRect();
@@ -1126,6 +1151,14 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                     height: cellRect.height
                 };
             }
+            
+            // Update existing zombie and projectile positions
+            gameState.zombies.forEach(zombie => {
+                if (zombie.element) {
+                    const yPosition = gameState.boardRect.top + zombie.row * gameState.cellSize.height + gameState.cellSize.height / 2 - 20;
+                    zombie.element.style.top = yPosition + 'px';
+                }
+            });
         }
 
         // Setup Event Listeners
@@ -1161,16 +1194,14 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
 
             window.addEventListener('resize', updateBoardDimensions);
             
-            // Force landscape on mobile
-            if (window.screen && window.screen.orientation) {
-                document.getElementById('fullscreenBtn').addEventListener('click', () => {
-                    if (window.screen.orientation.lock) {
-                        window.screen.orientation.lock('landscape').catch(err => {
-                            console.log('Orientation lock failed:', err);
-                        });
-                    }
-                });
-            }
+            // Update board dimensions when entering/exiting fullscreen
+            document.addEventListener('fullscreenchange', () => {
+                setTimeout(updateBoardDimensions, 100);
+            });
+            
+            document.addEventListener('webkitfullscreenchange', () => {
+                setTimeout(updateBoardDimensions, 100);
+            });
         }
 
         // Select Plant
@@ -1297,7 +1328,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }, 5000);
         }
 
-        // FIXED Shoot Projectile
+        // Shoot Projectile - FIXED ALIGNMENT
         function shoot(plant) {
             if (!plant.element || !plant.element.parentElement) return;
             
@@ -1337,6 +1368,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 if (plantType.fire) projectile.classList.add('fire');
                 projectile.textContent = plantType.projectile || '🟢';
                 
+                // Calculate proper Y position relative to board
                 const rowY = gameState.boardRect.top + targetRow * gameState.cellSize.height + gameState.cellSize.height / 2 - 10;
                 
                 projectile.style.left = (rect.left + rect.width) + 'px';
@@ -1382,13 +1414,17 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }
         }
 
-        // Move Projectiles
+        // Move Projectiles - FIXED ALIGNMENT
         function moveProjectiles(deltaTime) {
             gameState.projectiles = gameState.projectiles.filter(proj => {
                 if (!proj.element || !proj.element.parentElement) return false;
                 
                 proj.x += proj.speed * deltaTime / 1000;
                 proj.element.style.left = (gameState.boardRect.left + proj.x) + 'px';
+                
+                // Keep projectile aligned with row
+                const rowY = gameState.boardRect.top + proj.row * gameState.cellSize.height + gameState.cellSize.height / 2 - 10;
+                proj.element.style.top = rowY + 'px';
                 
                 const projRect = proj.element.getBoundingClientRect();
                 let hit = false;
@@ -1457,7 +1493,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             zombie.healthFill.style.width = (healthPercent * 100) + '%';
         }
 
-        // Move Zombies
+        // Move Zombies - FIXED ALIGNMENT & DAMAGE SCALING
         function moveZombies(deltaTime) {
             gameState.zombies = gameState.zombies.filter(zombie => {
                 if (!zombie.element) return false;
@@ -1473,6 +1509,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 if (!zombie.attacking) {
                     zombie.x -= currentSpeed * deltaTime / 1000 * gameState.gameSpeed;
                     zombie.element.style.left = (gameState.boardRect.left + zombie.x) + 'px';
+                    
+                    // Keep zombie aligned with row
+                    const yPosition = gameState.boardRect.top + zombie.row * gameState.cellSize.height + gameState.cellSize.height / 2 - 20;
+                    zombie.element.style.top = yPosition + 'px';
                 }
                 
                 zombie.attacking = false;
@@ -1499,7 +1539,9 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                         
                         if (Date.now() - zombie.lastAttack > 1000) {
                             zombie.lastAttack = Date.now();
-                            plant.health -= zombieTypes[zombie.type].damage;
+                            // Apply damage with wave multiplier
+                            const damage = getZombieDamage(zombieTypes[zombie.type].damage);
+                            plant.health -= damage;
                             updatePlantHealth(plant);
                             plant.element.classList.add('plant-damage-effect');
                             
@@ -1530,7 +1572,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             });
         }
 
-        // Spawn Zombie with Health Bar
+        // Spawn Zombie with Health Bar - FIXED ALIGNMENT
         function spawnZombie() {
             const row = Math.floor(Math.random() * 5);
             const zombieTypeKeys = Object.keys(zombieTypes);
@@ -1615,7 +1657,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }
         }
 
-        // Spawn Zombie Wave
+        // Spawn Zombie Wave - WITH DAMAGE SCALING
         function spawnZombieWave() {
             if (gameState.isGameOver) return;
             
@@ -1633,7 +1675,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             setTimeout(() => {
                 if (!gameState.isGameOver) {
                     gameState.wave++;
+                    // Increase zombie damage by 2% per wave
+                    gameState.zombieDamageMultiplier = 1 + (gameState.wave - 1) * 0.02;
                     document.getElementById('waveCount').textContent = gameState.wave;
+                    updateDamageDisplay();
                     addScore(100 * gameState.wave);
                     saveGameState();
                     spawnZombieWave();
@@ -1773,6 +1818,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                             Plants: ${gameState.plants.length}<br>
                             Projectiles: ${gameState.projectiles.length}<br>
                             Score: ${gameState.score}<br>
+                            Wave: ${gameState.wave}<br>
+                            Damage Mult: ${gameState.zombieDamageMultiplier.toFixed(2)}x<br>
                             FPS: ${Math.round(1000 / deltaTime)}
                         `;
                     }
@@ -1833,6 +1880,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                                 console.log('Orientation lock not supported:', err);
                             });
                         }
+                        // Update board dimensions after entering fullscreen
+                        setTimeout(updateBoardDimensions, 100);
                     }).catch(err => {
                         console.log('Fullscreen error:', err);
                     });
@@ -1844,7 +1893,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                               document.msExitFullscreen;
                 
                 if (exitFS) {
-                    exitFS.call(document);
+                    exitFS.call(document).then(() => {
+                        // Update board dimensions after exiting fullscreen
+                        setTimeout(updateBoardDimensions, 100);
+                    });
                 }
             }
         }
@@ -1855,7 +1907,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 sun: gameState.sun,
                 score: gameState.score,
                 wave: gameState.wave,
-                zombiesDefeated: gameState.zombiesDefeated
+                zombiesDefeated: gameState.zombiesDefeated,
+                zombieDamageMultiplier: gameState.zombieDamageMultiplier
             };
             localStorage.setItem('pvz_gameState', JSON.stringify(saveData));
         }
