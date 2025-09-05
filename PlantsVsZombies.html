@@ -948,7 +948,9 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             lastUpdate: Date.now(),
             zombieDamageMultiplier: 1.0,
             waveTimer: null,
-            wasFullscreen: false
+            wasFullscreen: false,
+            sunInterval: null,
+            gameLoopId: null
         };
 
         // Enhanced Plant Types - SUNFLOWER SUN REDUCED TO 80%
@@ -1064,6 +1066,96 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             fast: { emoji: '💀', health: 6, maxHealth: 6, speed: 20, damage: 1, points: 150 },
             strong: { emoji: '👹', health: 60, maxHealth: 60, speed: 6, damage: 2, points: 600 }
         };
+
+        // Reset game state to initial values
+        function resetGame() {
+            // Clear any existing timers
+            if (gameState.waveTimer) {
+                clearTimeout(gameState.waveTimer);
+            }
+            if (gameState.sunInterval) {
+                clearInterval(gameState.sunInterval);
+            }
+            
+            // Clear all DOM elements
+            clearAllGameElements();
+            
+            // Reset game state
+            gameState = {
+                sun: 200,
+                score: 0,
+                selectedPlant: null,
+                plants: [],
+                zombies: [],
+                projectiles: [],
+                suns: [],
+                wave: 1,
+                maxWaves: 20,
+                zombiesDefeated: 0,
+                isPaused: false,
+                isGameOver: false,
+                isVictory: false,
+                cellSize: { width: 0, height: 0 },
+                boardRect: null,
+                gameSpeed: 1,
+                lastUpdate: Date.now(),
+                zombieDamageMultiplier: 1.0,
+                waveTimer: null,
+                wasFullscreen: document.fullscreenElement !== null,
+                sunInterval: null,
+                gameLoopId: gameState.gameLoopId // Keep the game loop running
+            };
+            
+            // Reset UI
+            document.getElementById('sunCount').textContent = '200';
+            document.getElementById('scoreCount').textContent = '0';
+            document.getElementById('waveCount').textContent = '1';
+            document.getElementById('damageBonus').textContent = '0';
+            document.getElementById('speedBtn').textContent = '⚡ x1';
+            document.getElementById('speedBtn').classList.remove('active');
+            document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+            
+            // Hide all menus
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('pauseMenu').style.display = 'none';
+            document.getElementById('leaderboard').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            
+            // Reset plant selection
+            document.querySelectorAll('.plantCard').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Update displays
+            updateSunDisplay();
+            updateDamageDisplay();
+            updateWaveDisplay();
+            updateBoardDimensions();
+            
+            // Restart sun spawning
+            spawnSunPeriodically();
+            
+            // Start first wave after delay
+            setTimeout(() => spawnZombieWave(), 5000);
+        }
+
+        // Clear all game elements from DOM
+        function clearAllGameElements() {
+            // Remove all zombies
+            document.querySelectorAll('.zombie').forEach(el => el.remove());
+            
+            // Remove all projectiles
+            document.querySelectorAll('.projectile').forEach(el => el.remove());
+            
+            // Remove all suns
+            document.querySelectorAll('.sun').forEach(el => el.remove());
+            
+            // Remove all plants from cells
+            document.querySelectorAll('.cell .plant').forEach(el => el.remove());
+            
+            // Remove any floating particles or popups
+            document.querySelectorAll('.particle, .points-popup').forEach(el => el.remove());
+        }
 
         // Calculate zombie damage with wave multiplier
         function getZombieDamage(baseZombieDamage) {
@@ -1852,7 +1944,11 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
 
         // Spawn Sun Periodically
         function spawnSunPeriodically() {
-            setInterval(() => {
+            if (gameState.sunInterval) {
+                clearInterval(gameState.sunInterval);
+            }
+            
+            gameState.sunInterval = setInterval(() => {
                 if (!gameState.isPaused && !gameState.isGameOver) {
                     spawnFallingSun();
                 }
@@ -1988,10 +2084,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                     }
                 }
                 
-                requestAnimationFrame(gameLoop);
+                gameState.gameLoopId = requestAnimationFrame(gameLoop);
             }
             
-            requestAnimationFrame(gameLoop);
+            gameState.gameLoopId = requestAnimationFrame(gameLoop);
         }
 
         // Toggle Pause
@@ -2025,13 +2121,18 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             document.getElementById('finalZombies').textContent = gameState.zombiesDefeated;
         }
 
-        // Restart Game - MAINTAIN FULLSCREEN
+        // Restart Game - REPLACED WITH RESET
         function restartGame() {
-            // Save fullscreen state before reload
-            if (document.fullscreenElement) {
-                localStorage.setItem('pvz_fullscreen', 'true');
+            // Maintain fullscreen state
+            const wasFullscreen = document.fullscreenElement !== null;
+            
+            // Reset the game
+            resetGame();
+            
+            // Restore fullscreen if it was active
+            if (wasFullscreen) {
+                enterFullscreen();
             }
-            location.reload();
         }
 
         // Toggle Fullscreen
