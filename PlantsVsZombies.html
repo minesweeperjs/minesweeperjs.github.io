@@ -7,7 +7,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="PlantsVsZombies.ico"/>
-    <title>Plants vs Zombies - Enhanced Edition</title>
+    <title>Plants vs Zombies</title>
     <style>
         * {
             margin: 0;
@@ -428,7 +428,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }
         }
 
-        #gameOver, #pauseMenu, #leaderboard {
+        #gameOver, #pauseMenu, #leaderboard, #victoryScreen {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -450,10 +450,17 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             overflow-y: auto;
         }
 
-        #gameOver h2, #pauseMenu h2, #leaderboard h2 {
+        #gameOver h2, #pauseMenu h2, #leaderboard h2, #victoryScreen h2 {
             font-size: 2.2em;
             margin-bottom: 20px;
             background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #victoryScreen h2 {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -557,6 +564,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             background: linear-gradient(135deg, #667eea, #764ba2);
         }
 
+        .btn.gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
         #wave {
             position: absolute;
             top: 150px;
@@ -579,6 +590,16 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             font-size: 0.7em;
             margin-top: 3px;
             opacity: 0.9;
+        }
+
+        #wave.final-wave {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         .damage-effect {
@@ -749,6 +770,30 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 display: none;
             }
         }
+
+        .save-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            z-index: 200;
+            animation: saveNotification 2s ease forwards;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes saveNotification {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            40% { transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -826,7 +871,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
         </div>
         
         <div id="wave">
-            <div>Wave: <span id="waveCount">1</span></div>
+            <div>Wave: <span id="waveCount">1</span>/20</div>
             <div class="damage-bonus">DMG: +<span id="damageBonus">0</span>%</div>
         </div>
         
@@ -837,7 +882,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
         <div id="pauseMenu">
             <h2>Game Paused</h2>
             <button class="btn" onclick="resumeGame()">Resume</button>
-            <button class="btn secondary" onclick="showLeaderboard()">Leaderboard</button>
+            <button class="btn secondary" onclick="showLeaderboard()">Top 10 Scores</button>
             <button class="btn" onclick="restartGame()">Restart</button>
         </div>
         
@@ -855,8 +900,21 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 <p>Zombies Defeated: <span id="finalZombies">0</span></p>
             </div>
             <div>
-                <button class="btn" onclick="saveScore()">Save Score</button>
-                <button class="btn secondary" onclick="showLeaderboard()">Leaderboard</button>
+                <button class="btn secondary" onclick="showLeaderboard()">View Top 10</button>
+                <button class="btn" onclick="restartGame()">Play Again</button>
+            </div>
+        </div>
+
+        <div id="victoryScreen">
+            <h2>🎉 Victory! 🎉</h2>
+            <div class="stats">
+                <p style="font-size: 1.3em; color: #FFD700;">You survived all 20 waves!</p>
+                <p>Final Score: <span id="victoryScore" style="font-size: 1.5em; color: #764ba2;">0</span></p>
+                <p>Zombies Defeated: <span id="victoryZombies">0</span></p>
+                <p style="margin-top: 15px; color: #4CAF50;">Your score has been saved!</p>
+            </div>
+            <div>
+                <button class="btn gold" onclick="showLeaderboard()">View Top 10</button>
                 <button class="btn" onclick="restartGame()">Play Again</button>
             </div>
         </div>
@@ -873,24 +931,28 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             projectiles: [],
             suns: [],
             wave: 1,
+            maxWaves: 20,
             zombiesDefeated: 0,
             isPaused: false,
             isGameOver: false,
+            isVictory: false,
             cellSize: { width: 0, height: 0 },
             boardRect: null,
             gameSpeed: 1,
             lastUpdate: Date.now(),
-            zombieDamageMultiplier: 1.0  // Starts at 1.0, increases by 2% per wave
+            zombieDamageMultiplier: 1.0,
+            waveTimer: null
         };
 
-        // Enhanced Plant Types - CHOMPER REDUCED BY 20%
+        // Enhanced Plant Types - SUNFLOWER SUN REDUCED TO 80%
         const plantTypes = {
             sunflower: { 
                 emoji: '🌻', 
                 health: 3.6,
                 maxHealth: 3.6,
                 produces: 'sun', 
-                interval: 7000,
+                sunAmount: 50,
+                interval: 12000,
                 shoots: false,
                 damage: 0.5,
                 shootInterval: 2500,
@@ -930,9 +992,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             },
             chomper: { 
                 emoji: '🌿', 
-                health: 4.88,  // Reduced by 20% from 3.6
+                health: 4.88,
                 maxHealth: 4.88,
-                damage: 3,
+                melee: false, 
+                damage: 3, 
                 interval: 3000,
                 shoots: true,
                 shootDamage: 2,
@@ -1006,6 +1069,17 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             document.getElementById('damageBonus').textContent = bonusPercent;
         }
 
+        // Update wave display
+        function updateWaveDisplay() {
+            document.getElementById('waveCount').textContent = gameState.wave;
+            const waveElement = document.getElementById('wave');
+            if (gameState.wave === gameState.maxWaves) {
+                waveElement.classList.add('final-wave');
+            } else {
+                waveElement.classList.remove('final-wave');
+            }
+        }
+
         // Format date and time for display
         function formatDateTime(dateString) {
             const date = new Date(dateString);
@@ -1037,6 +1111,18 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             return { date: dateStr, time: timeStr };
         }
 
+        // Show save notification
+        function showSaveNotification() {
+            const notification = document.createElement('div');
+            notification.className = 'save-notification';
+            notification.textContent = '✅ Score Saved to Top 10!';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
         // Leaderboard Functions
         function getLeaderboard() {
             const saved = localStorage.getItem('pvz_leaderboard');
@@ -1050,7 +1136,8 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 score: score,
                 wave: wave,
                 zombies: zombies,
-                datetime: new Date().toISOString()
+                datetime: new Date().toISOString(),
+                victory: gameState.isVictory
             });
             
             // Sort by score and keep top 10
@@ -1058,6 +1145,12 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             leaderboard = leaderboard.slice(0, 10);
             
             localStorage.setItem('pvz_leaderboard', JSON.stringify(leaderboard));
+            
+            // Show notification if score made it to top 10
+            if (leaderboard.some(entry => entry.score === score && entry.datetime === leaderboard[leaderboard.length - 1].datetime)) {
+                showSaveNotification();
+            }
+            
             return leaderboard;
         }
 
@@ -1081,11 +1174,12 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
                 const { date, time } = formatDateTime(entry.datetime);
+                const victoryBadge = entry.victory ? ' 👑' : '';
                 
                 entryDiv.innerHTML = `
                     <span class="leaderboard-rank">${medal}</span>
                     <div class="leaderboard-datetime">
-                        <span class="leaderboard-date">${date}</span>
+                        <span class="leaderboard-date">${date}${victoryBadge}</span>
                         <span class="leaderboard-time">${time}</span>
                     </div>
                     <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
@@ -1104,11 +1198,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             document.getElementById('leaderboard').style.display = 'none';
         }
 
-        function saveScore() {
-            saveToLeaderboard(gameState.score, gameState.wave, gameState.zombiesDefeated);
-            showLeaderboard();
-        }
-
         // Initialize Game
         function init() {
             createBoard();
@@ -1117,6 +1206,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             startGameLoop();
             spawnSunPeriodically();
             updateDamageDisplay();
+            updateWaveDisplay();
             setTimeout(() => spawnZombieWave(), 5000);
         }
 
@@ -1138,7 +1228,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             setTimeout(updateBoardDimensions, 100);
         }
 
-        // Update board dimensions - FIXED FOR FULLSCREEN
+        // Update board dimensions
         function updateBoardDimensions() {
             const board = document.getElementById('gameBoard');
             gameState.boardRect = board.getBoundingClientRect();
@@ -1193,7 +1283,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
 
             window.addEventListener('resize', updateBoardDimensions);
             
-            // Update board dimensions when entering/exiting fullscreen
             document.addEventListener('fullscreenchange', () => {
                 setTimeout(updateBoardDimensions, 100);
             });
@@ -1248,7 +1337,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 plantElement.className = 'plant';
                 plantElement.textContent = plantType.emoji;
                 
-                // Create health bar for plant
                 const healthBar = document.createElement('div');
                 healthBar.className = 'plant-health-bar';
                 const healthFill = document.createElement('div');
@@ -1280,7 +1368,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             const healthPercent = Math.max(0, plant.health / plant.maxHealth);
             plant.healthFill.style.width = (healthPercent * 100) + '%';
             
-            // Change color based on health
             if (healthPercent < 0.3) {
                 plant.healthFill.style.background = 'linear-gradient(90deg, #ff0000, #ff6600)';
             } else if (healthPercent < 0.6) {
@@ -1288,12 +1375,14 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }
         }
 
-        // Produce Sun
+        // Produce Sun - REDUCED TO 80%
         function produceSun(plant) {
             if (!plant.element || !plant.element.parentElement) return;
             
             const cell = plant.element.parentElement;
             const rect = cell.getBoundingClientRect();
+            const plantType = plantTypes[plant.type];
+            const sunValue = plantType.sunAmount || 40;  // Default to 40 (80% of 50)
             
             const sun = document.createElement('div');
             sun.className = 'sun';
@@ -1302,10 +1391,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             sunEmoji.textContent = '☀️';
             sun.appendChild(sunEmoji);
             
-            const sunValue = document.createElement('span');
-            sunValue.className = 'sun-value';
-            sunValue.textContent = '50';
-            sun.appendChild(sunValue);
+            const sunValueElement = document.createElement('span');
+            sunValueElement.className = 'sun-value';
+            sunValueElement.textContent = sunValue;
+            sun.appendChild(sunValueElement);
             
             sun.style.left = rect.left + rect.width / 2 - 15 + 'px';
             sun.style.top = rect.top + 'px';
@@ -1314,10 +1403,10 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             
             document.getElementById('gameContainer').appendChild(sun);
             
-            sun.addEventListener('click', () => collectSun(sun, 50));
+            sun.addEventListener('click', () => collectSun(sun, sunValue));
             sun.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                collectSun(sun, 50);
+                collectSun(sun, sunValue);
             });
             
             setTimeout(() => {
@@ -1327,7 +1416,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }, 5000);
         }
 
-        // Shoot Projectile - FIXED ALIGNMENT
+        // Shoot Projectile
         function shoot(plant) {
             if (!plant.element || !plant.element.parentElement) return;
             
@@ -1340,7 +1429,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             
             if (now - plant.lastShot < shootInterval / gameState.gameSpeed) return;
             
-            // Check for zombies in range
             let targetRows = [plant.row];
             if (plantType.triple) {
                 targetRows = [plant.row - 1, plant.row, plant.row + 1].filter(r => r >= 0 && r < 5);
@@ -1367,7 +1455,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 if (plantType.fire) projectile.classList.add('fire');
                 projectile.textContent = plantType.projectile || '🟢';
                 
-                // Calculate proper Y position relative to board
                 const rowY = gameState.boardRect.top + targetRow * gameState.cellSize.height + gameState.cellSize.height / 2 - 10;
                 
                 projectile.style.left = (rect.left + rect.width) + 'px';
@@ -1413,7 +1500,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }
         }
 
-        // Move Projectiles - FIXED ALIGNMENT
+        // Move Projectiles
         function moveProjectiles(deltaTime) {
             gameState.projectiles = gameState.projectiles.filter(proj => {
                 if (!proj.element || !proj.element.parentElement) return false;
@@ -1421,7 +1508,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 proj.x += proj.speed * deltaTime / 1000;
                 proj.element.style.left = (gameState.boardRect.left + proj.x) + 'px';
                 
-                // Keep projectile aligned with row
                 const rowY = gameState.boardRect.top + proj.row * gameState.cellSize.height + gameState.cellSize.height / 2 - 10;
                 proj.element.style.top = rowY + 'px';
                 
@@ -1492,7 +1578,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             zombie.healthFill.style.width = (healthPercent * 100) + '%';
         }
 
-        // Move Zombies - FIXED ALIGNMENT & DAMAGE SCALING
+        // Move Zombies
         function moveZombies(deltaTime) {
             gameState.zombies = gameState.zombies.filter(zombie => {
                 if (!zombie.element) return false;
@@ -1509,7 +1595,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                     zombie.x -= currentSpeed * deltaTime / 1000 * gameState.gameSpeed;
                     zombie.element.style.left = (gameState.boardRect.left + zombie.x) + 'px';
                     
-                    // Keep zombie aligned with row
                     const yPosition = gameState.boardRect.top + zombie.row * gameState.cellSize.height + gameState.cellSize.height / 2 - 20;
                     zombie.element.style.top = yPosition + 'px';
                 }
@@ -1538,7 +1623,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                         
                         if (Date.now() - zombie.lastAttack > 1000) {
                             zombie.lastAttack = Date.now();
-                            // Apply damage with wave multiplier
                             const damage = getZombieDamage(zombieTypes[zombie.type].damage);
                             plant.health -= damage;
                             updatePlantHealth(plant);
@@ -1571,7 +1655,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             });
         }
 
-        // Spawn Zombie with Health Bar - FIXED ALIGNMENT
+        // Spawn Zombie with Health Bar
         function spawnZombie() {
             const row = Math.floor(Math.random() * 5);
             const zombieTypeKeys = Object.keys(zombieTypes);
@@ -1656,33 +1740,68 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }
         }
 
-        // Spawn Zombie Wave - WITH DAMAGE SCALING
+        // Spawn Zombie Wave - LIMITED TO 20 WAVES
         function spawnZombieWave() {
-            if (gameState.isGameOver) return;
+            if (gameState.isGameOver || gameState.isVictory) return;
             
             const zombieCount = Math.min(3 + Math.floor(gameState.wave / 2), 15);
             const spawnDelay = Math.max(3000 - gameState.wave * 100, 1000);
             
             for (let i = 0; i < zombieCount; i++) {
                 setTimeout(() => {
-                    if (!gameState.isPaused && !gameState.isGameOver) {
+                    if (!gameState.isPaused && !gameState.isGameOver && !gameState.isVictory) {
                         spawnZombie();
                     }
                 }, i * spawnDelay);
             }
             
-            setTimeout(() => {
-                if (!gameState.isGameOver) {
-                    gameState.wave++;
-                    // Increase zombie damage by 2% per wave
-                    gameState.zombieDamageMultiplier = 1 + (gameState.wave - 1) * 0.02;
-                    document.getElementById('waveCount').textContent = gameState.wave;
-                    updateDamageDisplay();
-                    addScore(100 * gameState.wave);
-                    saveGameState();
-                    spawnZombieWave();
+            // Clear any existing timer
+            if (gameState.waveTimer) {
+                clearTimeout(gameState.waveTimer);
+            }
+            
+            gameState.waveTimer = setTimeout(() => {
+                if (!gameState.isGameOver && !gameState.isVictory) {
+                    if (gameState.wave < gameState.maxWaves) {
+                        gameState.wave++;
+                        gameState.zombieDamageMultiplier = 1 + (gameState.wave - 1) * 0.02;
+                        updateWaveDisplay();
+                        updateDamageDisplay();
+                        addScore(100 * gameState.wave);
+                        saveGameState();
+                        spawnZombieWave();
+                    } else {
+                        // Victory - survived all 20 waves!
+                        victory();
+                    }
                 }
             }, 30000);
+        }
+
+        // Victory function
+        function victory() {
+            gameState.isVictory = true;
+            gameState.isGameOver = true;
+            
+            // Clear all remaining zombies
+            gameState.zombies.forEach(zombie => {
+                if (zombie.element) {
+                    zombie.element.remove();
+                }
+            });
+            gameState.zombies = [];
+            
+            // Add victory bonus
+            const victoryBonus = 5000;
+            gameState.score += victoryBonus;
+            
+            // Auto-save score
+            saveToLeaderboard(gameState.score, gameState.wave, gameState.zombiesDefeated);
+            
+            // Show victory screen
+            document.getElementById('victoryScore').textContent = gameState.score.toLocaleString();
+            document.getElementById('victoryZombies').textContent = gameState.zombiesDefeated;
+            document.getElementById('victoryScreen').style.display = 'block';
         }
 
         // Spawn Sun Periodically
@@ -1694,7 +1813,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             }, 8000);
         }
 
-        // Spawn Falling Sun with Value Display
+        // Spawn Falling Sun
         function spawnFallingSun() {
             const sun = document.createElement('div');
             sun.className = 'sun';
@@ -1802,7 +1921,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                             }
                         }
                         
-                        // ALL plants can shoot
                         if (plantType.shoots) {
                             shoot(plant);
                         }
@@ -1817,7 +1935,7 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                             Plants: ${gameState.plants.length}<br>
                             Projectiles: ${gameState.projectiles.length}<br>
                             Score: ${gameState.score}<br>
-                            Wave: ${gameState.wave}<br>
+                            Wave: ${gameState.wave}/${gameState.maxWaves}<br>
                             Damage Mult: ${gameState.zombieDamageMultiplier.toFixed(2)}x<br>
                             FPS: ${Math.round(1000 / deltaTime)}
                         `;
@@ -1846,9 +1964,15 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             gameState.lastUpdate = Date.now();
         }
 
-        // Game Over
+        // Game Over - AUTO SAVE SCORE
         function gameOver() {
+            if (gameState.isGameOver) return;
+            
             gameState.isGameOver = true;
+            
+            // Auto-save score
+            saveToLeaderboard(gameState.score, gameState.wave, gameState.zombiesDefeated);
+            
             document.getElementById('gameOver').style.display = 'block';
             document.getElementById('finalScore').textContent = gameState.score.toLocaleString();
             document.getElementById('finalWave').textContent = gameState.wave;
@@ -1860,12 +1984,11 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
             location.reload();
         }
 
-        // Toggle Fullscreen with landscape orientation
+        // Toggle Fullscreen
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 const elem = document.documentElement;
                 
-                // Request fullscreen
                 const requestFS = elem.requestFullscreen || 
                                  elem.webkitRequestFullscreen || 
                                  elem.mozRequestFullScreen || 
@@ -1873,13 +1996,11 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 
                 if (requestFS) {
                     requestFS.call(elem).then(() => {
-                        // Try to lock orientation to landscape
                         if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
                             window.screen.orientation.lock('landscape').catch(err => {
                                 console.log('Orientation lock not supported:', err);
                             });
                         }
-                        // Update board dimensions after entering fullscreen
                         setTimeout(updateBoardDimensions, 100);
                     }).catch(err => {
                         console.log('Fullscreen error:', err);
@@ -1893,7 +2014,6 @@ Copyright (c) 2025 Valentyn Kolesnikov <0009-0003-9608-3364@orcid.org>
                 
                 if (exitFS) {
                     exitFS.call(document).then(() => {
-                        // Update board dimensions after exiting fullscreen
                         setTimeout(updateBoardDimensions, 100);
                     });
                 }
