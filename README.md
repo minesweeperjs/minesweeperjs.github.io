@@ -18,7 +18,7 @@ A lightweight, browser-based implementation of the classic puzzle game **Mineswe
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/yourusername/minesweeperjs.github.io
+   git clone https://github.com/minesweeperjs/minesweeperjs.github.io
    ```
 2. Navigate to the project folder:
 
